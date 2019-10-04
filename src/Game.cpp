@@ -28,8 +28,8 @@ public:
   virtual ~TurnImpl() = default;
 };
 
-std::list<CardId> getCardIds(const std::map<PlayerId, Cards>& hands,
-                             PlayerId playerId)
+std::list<CardId> transformToCardIds(const std::map<PlayerId, Cards>& hands,
+                                     PlayerId playerId)
 {
   std::list<CardId> cardIds;
   std::transform(hands.at(playerId).begin(),
@@ -43,6 +43,7 @@ Game::Game(Players& players, std::list<Card> deck)
   : players(players)
   , deck(deck)
   , hands()
+  , numberOfHints(8)
 {
   validate();
   play();
@@ -65,6 +66,7 @@ void Game::play()
 
   dealCards();
   runPlayerTurn(*players.front());
+  runPlayerTurn(*players.back());
 }
 
 void Game::dealCards()
@@ -86,27 +88,32 @@ void Game::runPlayerTurn(Player& player)
 {
   auto playerId = player.getId();
   TurnImpl turn{
-    getCardIds(hands, playerId),
+    transformToCardIds(hands, playerId),
     std::map<PlayerId, Cards>{
       { players.back()->getId(), hands[players.back()->getId()] } },
     {},
-    8,
-    [this](PlayerId playerId, Color color) {
-      Cards hand = hands.at(playerId);
-      std::list<CardId> ids;
-      for (auto card : hand)
-      {
-        if (card.color == color)
-        {
-          ids.push_back(card.id);
-        }
-      }
-      auto player =
-        std::find_if(players.begin(), players.end(), [playerId](auto player) {
-          return player->getId() == playerId;
-        });
-      (*player)->takeHint(ids, color);
-    }
+    numberOfHints,
+    std::bind(
+      &Game::passHint, this, std::placeholders::_1, std::placeholders::_2)
   };
   player.playTurn(turn);
+}
+
+void Game::passHint(PlayerId playerId, Color color)
+{
+  --numberOfHints;
+  Cards hand = hands.at(playerId);
+  std::list<CardId> ids;
+  for (auto card : hand)
+  {
+    if (card.color == color)
+    {
+      ids.push_back(card.id);
+    }
+  }
+  auto player =
+    std::find_if(players.begin(), players.end(), [playerId](auto player) {
+      return player->getId() == playerId;
+    });
+  (*player)->takeHint(ids, color);
 }

@@ -25,10 +25,12 @@ class Game
   void runPlayerTurn(Player& player);
   void validate();
   void play();
+  void passHint(PlayerId, Color);
 
   Players players;
   Cards deck;
   std::map<PlayerId, Cards> hands;
+  int numberOfHints;
 
 public:
   Game(Game&) = delete;
