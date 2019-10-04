@@ -1,18 +1,32 @@
 #include "Game.hpp"
 #include <algorithm>
+#include <functional>
 
-Game::TurnImpl::TurnImpl(std::list<CardId> playerHand,
-                         std::map<PlayerId, Cards> otherPlayers,
-                         Cards graveyard,
-                         int numberOfHints)
-  : Turn{ playerHand, otherPlayers, graveyard, numberOfHints }
+class TurnImpl : public Turn
 {
-}
+  std::function<void(PlayerId, Color)> giveColorHintImpl;
 
-void Game::TurnImpl::discard(CardId) {}
-void Game::TurnImpl::giveHint(PlayerId, Color) {}
-void Game::TurnImpl::giveHint(PlayerId, Value) {}
-void Game::TurnImpl::playCard(CardId) {}
+public:
+  TurnImpl(std::list<CardId> playerHand,
+           std::map<PlayerId, Cards> otherPlayers,
+           Cards graveyard,
+           int numberOfHints,
+           std::function<void(PlayerId, Color)> giveColorHintImpl)
+    : Turn{ playerHand, otherPlayers, graveyard, numberOfHints }
+    , giveColorHintImpl(giveColorHintImpl)
+  {
+  }
+
+  void giveHint(PlayerId playerId, Color color)
+  {
+    giveColorHintImpl(playerId, color);
+  };
+
+  void giveHint(PlayerId, Value){};
+  void playCard(CardId){};
+  void discard(CardId){};
+  virtual ~TurnImpl() = default;
+};
 
 std::list<CardId> getCardIds(const std::map<PlayerId, Cards>& hands,
                              PlayerId playerId)
@@ -71,11 +85,28 @@ void Game::dealCards()
 void Game::runPlayerTurn(Player& player)
 {
   auto playerId = player.getId();
-  TurnImpl turn{ getCardIds(hands, playerId),
-                 std::map<PlayerId, Cards>{
-                   { players.back()->getId(),
-                     hands[players.back()->getId()] } },
-                 {},
-                 8 };
+  TurnImpl turn{
+    getCardIds(hands, playerId),
+    std::map<PlayerId, Cards>{
+      { players.back()->getId(), hands[players.back()->getId()] } },
+    {},
+    8,
+    [this](PlayerId playerId, Color color) {
+      Cards hand = hands.at(playerId);
+      std::list<CardId> ids;
+      for (auto card : hand)
+      {
+        if (card.color == color)
+        {
+          ids.push_back(card.id);
+        }
+      }
+      auto player =
+        std::find_if(players.begin(), players.end(), [playerId](auto player) {
+          return player->getId() == playerId;
+        });
+      (*player)->takeHint(ids, color);
+    }
+  };
   player.playTurn(turn);
 }

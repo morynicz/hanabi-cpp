@@ -18,12 +18,16 @@ class MockPlayer : public Player
 public:
   MOCK_CONST_METHOD0(getId, PlayerId());
   MOCK_METHOD1(playTurn, void(Turn&));
+  MOCK_METHOD2(takeHint, void(std::list<CardId>, Color));
+  MOCK_METHOD2(takeHint, void(std::list<CardId>, Value));
 };
 
 class DummyPlayer : public Player
 {
   PlayerId getId() const { return 0; }
   void playTurn(Turn&) {}
+  void takeHint(std::list<CardId>, Color){};
+  void takeHint(std::list<CardId>, Value){};
 };
 
 constexpr PlayerId PLAYER_1_ID = 2;
@@ -71,15 +75,14 @@ struct TwoPlayerGameTests : public ::testing::Test
 
   std::vector<Card> deck;
   std::shared_ptr<MockPlayer> player1 =
-    std::make_shared<::testing::StrictMock<MockPlayer>>();
+    std::make_shared<::testing::NiceMock<MockPlayer>>();
   std::shared_ptr<MockPlayer> player2 =
-    std::make_shared<::testing::StrictMock<MockPlayer>>();
+    std::make_shared<::testing::NiceMock<MockPlayer>>();
   Players players;
 };
 
-TEST_F(
-  TwoPlayerGameTests,
-  GivenTwoPlayerGameWhenGameStartsThenPlayerOneGetsTurnWith5CardsAnd8AvailableHints)
+TEST_F(TwoPlayerGameTests,
+       WhenGameStartsThenPlayerOneGetsTurnWith5CardsAnd8AvailableHints)
 {
   EXPECT_CALL(
     *player1,
@@ -93,5 +96,20 @@ TEST_F(
         ElementsAre(std::pair<PlayerId, Cards>{
           PLAYER_2_ID, Cards{ deck[1], deck[3], deck[5], deck[7], deck[9] } })),
       Field(&Turn::graveyard, ::testing::IsEmpty()))));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+}
+
+ACTION_P2(PlayerGiveHint, playerId, hint)
+{
+  arg0.giveHint(playerId, hint);
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1GivesColorHintToPlayer2ThenTurnGivenToPlayer2Has7HintsAndSelectedCardsHaveColorRevealed)
+{
+  EXPECT_CALL(*player1, playTurn(::testing::_))
+    .WillOnce(PlayerGiveHint(PLAYER_2_ID, Color::RED));
+  EXPECT_CALL(*player2, takeHint(std::list<CardId>{ 1 }, Color::RED));
   Game game(players, std::list<Card>(deck.begin(), deck.end()));
 }
