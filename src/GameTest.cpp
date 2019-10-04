@@ -22,6 +22,7 @@ class DummyPlayer : public Player
   void playTurn(Turn&) {}
 };
 
+constexpr PlayerId PLAYER_1_ID = 2;
 constexpr PlayerId PLAYER_2_ID = 4;
 
 TEST(Basic, WhenPreparingGameFor1PlayerThenThrowNotEnoughPlayersException)
@@ -56,9 +57,12 @@ struct TwoPlayerGameTests : public ::testing::Test
              { 6, Color::RED, Value::FOUR },
              { 7, Color::WHITE, Value::ONE },
              { 8, Color::BLUE, Value::TWO },
-             { 9, Color::YELLOW, Value::FOUR } })
+             { 9, Color::YELLOW, Value::FOUR },
+             { 10, Color::RED, Value::ONE } })
     , players{ player1, player2 }
   {
+    EXPECT_CALL(*player1, getId())
+      .WillRepeatedly(::testing::Return(PLAYER_1_ID));
     EXPECT_CALL(*player2, getId())
       .WillRepeatedly(::testing::Return(PLAYER_2_ID));
   }
