@@ -101,9 +101,10 @@ std::ostream& operator<<(std::ostream& str, const std::map<K, V>& map)
 std::ostream& operator<<(std::ostream& str, const Turn& turn)
 {
   return str << "playerHand: " << turn.playerHand
-             << " ; otherPlayers: " << turn.otherPlayers
-             << " ; graveyard: " << turn.graveyard
-             << " ; numberOfHints: " << turn.numberOfHints;
+             << "; otherPlayers: " << turn.otherPlayers
+             << "; graveyard: " << turn.graveyard
+             << "; numberOfHints: " << turn.numberOfHints
+             << "; numberOfLives: " << turn.numberOfLives;
 }
 
 class MockPlayer : public Player
@@ -275,6 +276,27 @@ TEST_F(
   EXPECT_THROW(
     { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
     CardNotInHandException);
+}
+
+TEST_F(TwoPlayerGameTests,
+       GivenFirstTurnWhenPlayer1PlaysInvalidCardThenLifeIsLost)
+{
+  ON_CALL(*player1, playTurn(::testing::_)).WillByDefault(PlayerPlayCard(2));
+  EXPECT_CALL(
+    *player2,
+    playTurn(AllOf(
+      Field(&Turn::numberOfHints, 8),
+      Field(&Turn::numberOfLives, 2),
+      Field(&Turn::playerHand,
+            ElementsAre(
+              deck[1].id, deck[3].id, deck[5].id, deck[7].id, deck[9].id)),
+      Field(&Turn::otherPlayers,
+            ElementsAre(std::pair<PlayerId, Cards>{
+              PLAYER_1_ID,
+              Cards{ deck[0], deck[4], deck[6], deck[8], deck[10] } })),
+      Field(&Turn::graveyard, ElementsAre(deck[2])),
+      Field(&Turn::stacks, ::testing::IsEmpty()))));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
 }
 
 // TEST_F(TwoPlayerGameTests,

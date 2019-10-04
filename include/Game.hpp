@@ -37,12 +37,15 @@ class Game
     PlayerId player,
     std::function<bool(const Card&)> predicate);
   Players::iterator getPlayerById(PlayerId);
-  void playCard(CardId);
+  void playCard(PlayerId, CardId);
+  void drawCard(PlayerId);
 
   Players players;
   Cards deck;
   std::map<PlayerId, Cards> hands;
+  Cards graveyard;
   unsigned char numberOfHints;
+  unsigned char numberOfLives;
 
 public:
   Game(Game&) = delete;
