@@ -28,21 +28,23 @@ using Players = std::list<std::shared_ptr<Player>>;
 class Game
 {
   void dealCards();
-  void runPlayerTurn(Player& player);
+  void runPlayerTurn(Player&);
   void validate();
   void play();
   void passColorHint(PlayerId, Color);
   void passValueHint(PlayerId, Value);
   std::tuple<Players::iterator, std::list<CardId>> prepareHint(
-    PlayerId player,
-    std::function<bool(const Card&)> predicate);
+    PlayerId,
+    std::function<bool(const Card&)>);
   Players::iterator getPlayerById(PlayerId);
   void playCard(PlayerId, CardId);
   void drawCard(PlayerId);
+  bool isOpeningNewStack(const Card&);
 
   Players players;
   Cards deck;
   std::map<PlayerId, Cards> hands;
+  std::map<Color, Value> stacks;
   Cards graveyard;
   unsigned char numberOfHints;
   unsigned char numberOfLives;

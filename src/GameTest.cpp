@@ -102,9 +102,11 @@ std::ostream& operator<<(std::ostream& str, const Turn& turn)
 {
   return str << "playerHand: " << turn.playerHand
              << "; otherPlayers: " << turn.otherPlayers
-             << "; graveyard: " << turn.graveyard
-             << "; numberOfHints: " << turn.numberOfHints
-             << "; numberOfLives: " << turn.numberOfLives;
+             << "; graveyard: " << turn.graveyard << "; stacks: " << turn.stacks
+             << "; numberOfHints: "
+             << static_cast<unsigned int>(turn.numberOfHints)
+             << "; numberOfLives: "
+             << static_cast<unsigned int>(turn.numberOfLives);
 }
 
 class MockPlayer : public Player
@@ -299,24 +301,23 @@ TEST_F(TwoPlayerGameTests,
   Game game(players, std::list<Card>(deck.begin(), deck.end()));
 }
 
-// TEST_F(TwoPlayerGameTests,
-//        GivenFirstTurnWhenPlayer1PlaysValidCardThenStackOfGivenColorIsCreated)
-// {
-//   ON_CALL(*player1, playTurn(::testing::_)).WillByDefault(PlayerPlayCard(0));
-//   EXPECT_CALL(
-//     *player2,
-//     playTurn(AllOf(
-//       Field(&Turn::numberOfHints, 8),
-//       Field(&Turn::playerHand,
-//             ElementsAre(
-//               deck[1].id, deck[3].id, deck[5].id, deck[7].id, deck[9].id)),
-//       Field(&Turn::otherPlayers,
-//             ElementsAre(std::pair<PlayerId, Cards>{
-//               PLAYER_2_ID,
-//               Cards{ deck[2], deck[4], deck[6], deck[8], deck[10] } })),
-//       Field(&Turn::graveyard, ::testing::IsEmpty()),
-//       Field(&Turn::stacks,
-//             ElementsAre(std::pair<Color, Value>{ Color::BLUE, Value::ONE
-//             })))));
-//   Game game(players, std::list<Card>(deck.begin(), deck.end()));
-// }
+TEST_F(TwoPlayerGameTests,
+       GivenFirstTurnWhenPlayer1PlaysValidCardThenStackOfGivenColorIsCreated)
+{
+  ON_CALL(*player1, playTurn(::testing::_)).WillByDefault(PlayerPlayCard(0));
+  EXPECT_CALL(
+    *player2,
+    playTurn(AllOf(
+      Field(&Turn::numberOfHints, 8),
+      Field(&Turn::playerHand,
+            ElementsAre(
+              deck[1].id, deck[3].id, deck[5].id, deck[7].id, deck[9].id)),
+      Field(&Turn::otherPlayers,
+            ElementsAre(std::pair<PlayerId, Cards>{
+              PLAYER_1_ID,
+              Cards{ deck[2], deck[4], deck[6], deck[8], deck[10] } })),
+      Field(&Turn::graveyard, ::testing::IsEmpty()),
+      Field(&Turn::stacks,
+            ElementsAre(std::pair<Color, Value>{ Color::BLUE, Value::ONE })))));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+}

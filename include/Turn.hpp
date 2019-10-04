@@ -13,11 +13,13 @@ public:
   Turn(std::list<CardId> playerHand,
        std::map<PlayerId, Cards> otherPlayers,
        Cards graveyard,
+       std::map<Color, Value> stacks,
        unsigned char numberOfHints,
        unsigned char numberOfLives)
     : playerHand(playerHand)
     , otherPlayers(otherPlayers)
     , graveyard(graveyard)
+    , stacks(stacks)
     , numberOfHints(numberOfHints)
     , numberOfLives(numberOfLives)
   {

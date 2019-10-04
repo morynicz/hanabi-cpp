@@ -14,12 +14,14 @@ public:
            std::list<CardId> playerHand,
            std::map<PlayerId, Cards> otherPlayers,
            Cards graveyard,
+           std::map<Color, Value> stacks,
            unsigned char numberOfHints,
            unsigned char numberOfLives,
            std::function<void(PlayerId, Color)> giveColorHintImpl,
            std::function<void(PlayerId, Value)> giveValueHintImpl,
            std::function<void(CardId)> playCardImpl)
-    : Turn{ playerHand, otherPlayers, graveyard, numberOfHints, numberOfLives }
+    : Turn{ playerHand, otherPlayers,  graveyard,
+            stacks,     numberOfHints, numberOfLives }
     , giveColorHintImpl(giveColorHintImpl)
     , giveValueHintImpl(giveValueHintImpl)
     , playCardImpl(playCardImpl)
@@ -112,6 +114,7 @@ void Game::runPlayerTurn(Player& player)
     transformToCardIds(hands, playerId),
     otherPlayersHands,
     graveyard,
+    stacks,
     numberOfHints,
     numberOfLives,
     std::bind(
@@ -181,11 +184,24 @@ void Game::playCard(PlayerId currentPlayer, CardId cardId)
     });
   if (card == hand.end())
     throw CardNotInHandException();
-  graveyard.push_back(*card);
+  if (isOpeningNewStack(*card))
+  {
+    stacks.insert_or_assign(card->color, card->value);
+  }
+  else
+  {
+    graveyard.push_back(*card);
+    --numberOfLives;
+  }
   hand.erase(card);
-  --numberOfLives;
   drawCard(currentPlayer);
 }
+
+bool Game::isOpeningNewStack(const Card& card)
+{
+  return card.value == Value::ONE and stacks.find(card.color) == stacks.end();
+}
+
 // catch (...)
 // {
 // }
