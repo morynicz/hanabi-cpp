@@ -2,5 +2,6 @@
 
 class Player
 {
+public:
   Player() = default;
 };
