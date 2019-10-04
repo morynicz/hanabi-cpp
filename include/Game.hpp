@@ -39,7 +39,9 @@ class Game
   Players::iterator getPlayerById(PlayerId);
   void playCard(PlayerId, CardId);
   void drawCard(PlayerId);
+  void discard(PlayerId, CardId);
   bool isOpeningNewStack(const Card&);
+  Card getCard(PlayerId, CardId);
 
   Players players;
   Cards deck;

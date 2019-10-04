@@ -321,3 +321,40 @@ TEST_F(TwoPlayerGameTests,
             ElementsAre(std::pair<Color, Value>{ Color::BLUE, Value::ONE })))));
   Game game(players, std::list<Card>(deck.begin(), deck.end()));
 }
+
+ACTION_P(PlayerDiscardCard, cardId)
+{
+  arg0.discard(cardId);
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1DiscardsCardNotInHisHandThenCardNotInHandExceptionIsThrown)
+{
+  ON_CALL(*player1, playTurn(::testing::_))
+    .WillByDefault(PlayerDiscardCard(1000));
+  EXPECT_THROW(
+    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
+    CardNotInHandException);
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1PlaysDiscardsCardThenAvailableHintsAreNotIncreased)
+{
+  ON_CALL(*player1, playTurn(::testing::_)).WillByDefault(PlayerDiscardCard(0));
+  EXPECT_CALL(
+    *player2,
+    playTurn(AllOf(
+      Field(&Turn::numberOfHints, 8),
+      Field(&Turn::playerHand,
+            ElementsAre(
+              deck[1].id, deck[3].id, deck[5].id, deck[7].id, deck[9].id)),
+      Field(&Turn::otherPlayers,
+            ElementsAre(std::pair<PlayerId, Cards>{
+              PLAYER_1_ID,
+              Cards{ deck[2], deck[4], deck[6], deck[8], deck[10] } })),
+      Field(&Turn::stacks, ::testing::IsEmpty()),
+      Field(&Turn::graveyard, ElementsAre(deck[0])))));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+}

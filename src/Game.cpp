@@ -7,11 +7,10 @@ class TurnImpl : public Turn
   std::function<void(PlayerId, Color)> giveColorHintImpl;
   std::function<void(PlayerId, Value)> giveValueHintImpl;
   std::function<void(CardId)> playCardImpl;
-  PlayerId currentPlayer;
+  std::function<void(CardId)> discardCardImpl;
 
 public:
-  TurnImpl(PlayerId currentPlayer,
-           std::list<CardId> playerHand,
+  TurnImpl(std::list<CardId> playerHand,
            std::map<PlayerId, Cards> otherPlayers,
            Cards graveyard,
            std::map<Color, Value> stacks,
@@ -19,13 +18,14 @@ public:
            unsigned char numberOfLives,
            std::function<void(PlayerId, Color)> giveColorHintImpl,
            std::function<void(PlayerId, Value)> giveValueHintImpl,
-           std::function<void(CardId)> playCardImpl)
+           std::function<void(CardId)> playCardImpl,
+           std::function<void(CardId)> discardCardImpl)
     : Turn{ playerHand, otherPlayers,  graveyard,
             stacks,     numberOfHints, numberOfLives }
     , giveColorHintImpl(giveColorHintImpl)
     , giveValueHintImpl(giveValueHintImpl)
     , playCardImpl(playCardImpl)
-    , currentPlayer(currentPlayer)
+    , discardCardImpl(discardCardImpl)
   {
   }
 
@@ -39,7 +39,7 @@ public:
     giveValueHintImpl(playerId, value);
   };
   void playCard(CardId cardId) { playCardImpl(cardId); };
-  void discard(CardId){};
+  void discard(CardId cardId) { discardCardImpl(cardId); };
   virtual ~TurnImpl() = default;
 };
 
@@ -110,7 +110,6 @@ void Game::runPlayerTurn(Player& player)
   auto otherPlayersHands(hands);
   otherPlayersHands.erase(playerId);
   TurnImpl turn{
-    playerId,
     transformToCardIds(hands, playerId),
     otherPlayersHands,
     graveyard,
@@ -121,8 +120,8 @@ void Game::runPlayerTurn(Player& player)
       &Game::passColorHint, this, std::placeholders::_1, std::placeholders::_2),
     std::bind(
       &Game::passValueHint, this, std::placeholders::_1, std::placeholders::_2),
-    std::bind(&Game::playCard, this, playerId, std::placeholders::_1)
-
+    std::bind(&Game::playCard, this, playerId, std::placeholders::_1),
+    std::bind(&Game::discard, this, playerId, std::placeholders::_1)
   };
   player.playTurn(turn);
 }
@@ -173,27 +172,31 @@ Players::iterator Game::getPlayerById(PlayerId playerId)
   return player;
 }
 
-void Game::playCard(PlayerId currentPlayer, CardId cardId)
+Card Game::getCard(PlayerId playerId, CardId cardId)
 {
-  // try
-  // {
-  Cards& hand = hands.at(currentPlayer);
+  Cards& hand = hands.at(playerId);
   auto card =
     std::find_if(hand.begin(), hand.end(), [cardId](const Card& card) {
       return card.id == cardId;
     });
   if (card == hand.end())
     throw CardNotInHandException();
-  if (isOpeningNewStack(*card))
+  hand.erase(card);
+  return *card;
+}
+
+void Game::playCard(PlayerId currentPlayer, CardId cardId)
+{
+  auto card = getCard(currentPlayer, cardId);
+  if (isOpeningNewStack(card))
   {
-    stacks.insert_or_assign(card->color, card->value);
+    stacks.insert_or_assign(card.color, card.value);
   }
   else
   {
-    graveyard.push_back(*card);
+    graveyard.push_back(card);
     --numberOfLives;
   }
-  hand.erase(card);
   drawCard(currentPlayer);
 }
 
@@ -202,7 +205,9 @@ bool Game::isOpeningNewStack(const Card& card)
   return card.value == Value::ONE and stacks.find(card.color) == stacks.end();
 }
 
-// catch (...)
-// {
-// }
-// }
+void Game::discard(PlayerId currentPlayer, CardId cardId)
+{
+  auto card = getCard(currentPlayer, cardId);
+  graveyard.push_back(card);
+  drawCard(currentPlayer);
+}
