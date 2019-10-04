@@ -17,13 +17,18 @@ using Players = std::list<std::shared_ptr<Player>>;
 
 class Game
 {
+  class TurnImpl : public Turn
+  {
+  public:
+    TurnImpl(std::list<CardId>, std::map<PlayerId, std::list<Card>>, int);
+    void giveHint(PlayerId, Color);
+    void giveHint(PlayerId, Value);
+    void playCard(CardId);
+    void discard(CardId);
+    virtual ~TurnImpl() = default;
+  };
+
 public:
   Game(Game&) = delete;
-  Game(Players& players, std::list<Card>)
-  {
-    if (players.size() < 2)
-      throw NotEnoughPlayersException();
-    if (players.size() > 5)
-      throw TooManyPlayersException();
-  }
+  Game(Players& players, std::list<Card>);
 };

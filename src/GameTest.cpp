@@ -4,6 +4,11 @@
 #include <gtest/gtest.h>
 #include <memory>
 
+bool operator==(const Card& lhs, const Card& rhs)
+{
+  return lhs.id == rhs.id;
+}
+
 class MockPlayer : public Player
 {
 public:
@@ -16,6 +21,8 @@ class DummyPlayer : public Player
   PlayerId getId() const { return 0; }
   void playTurn(Turn&) {}
 };
+
+constexpr PlayerId PLAYER_2_ID = 4;
 
 TEST(Basic, WhenPreparingGameFor1PlayerThenThrowNotEnoughPlayersException)
 {
@@ -52,17 +59,34 @@ struct TwoPlayerGameTests : public ::testing::Test
              { 9, Color::YELLOW, Value::FOUR } })
     , players{ player1, player2 }
   {
+    EXPECT_CALL(*player2, getId())
+      .WillRepeatedly(::testing::Return(PLAYER_2_ID));
   }
 
+  std::shared_ptr<MockPlayer> player1 =
+    std::make_shared<::testing::StrictMock<MockPlayer>>();
+  std::shared_ptr<MockPlayer> player2 =
+    std::make_shared<::testing::StrictMock<MockPlayer>>();
   Players players;
-  std::shared_ptr<MockPlayer> player1 = std::make_shared<MockPlayer>();
-  std::shared_ptr<MockPlayer> player2 = std::make_shared<MockPlayer>();
-  std::list<Card> deck;
+  std::vector<Card> deck;
 };
 
 TEST_F(
   TwoPlayerGameTests,
   GivenTwoPlayerGameWhenGameStartsThenPlayerOneGetsTurnWith5CardsAnd8AvailableHints)
 {
-  EXPECT_CALL(*player1, playTurn(::testing::_));
+  EXPECT_CALL(
+    *player1,
+    playTurn(::testing::AllOf(
+      ::testing::Field(&Turn::numberOfHints, 8),
+      ::testing::Field(
+        &Turn::playerHand,
+        ::testing::ElementsAre(
+          deck[0].id, deck[2].id, deck[4].id, deck[6].id, deck[8].id)),
+      ::testing::Field(
+        &Turn::otherPlayers,
+        ::testing::ElementsAre(std::pair<PlayerId, Hand>{
+          PLAYER_2_ID,
+          Hand{ deck[1], deck[3], deck[5], deck[7], deck[9] } })))));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
 }

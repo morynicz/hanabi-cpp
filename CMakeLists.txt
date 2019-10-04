@@ -36,7 +36,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 include_directories(include)
 
-add_executable(test_game src/GameTest.cpp)
+add_executable(test_game src/Game.cpp src/GameTest.cpp)
 target_link_libraries(test_game gmock_main gtest gmock ${CMAKE_THREAD_LIBS_INIT})
 
 enable_testing()
