@@ -73,6 +73,39 @@ std::ostream& operator<<(std::ostream& str, const Card& card)
   return str << card.color << " " << card.value;
 }
 
+template<typename T>
+std::ostream& operator<<(std::ostream& str, const std::list<T>& list)
+{
+  str << "[";
+  for (auto item : list)
+  {
+    str << "{" << item << "}";
+  }
+  str << "]";
+  return str;
+}
+
+template<typename K, typename V>
+std::ostream& operator<<(std::ostream& str, const std::map<K, V>& map)
+{
+  str << "[";
+  for (auto item : map)
+  {
+    str << "{"
+        << "(" << item.first << ") = " << item.second << "}";
+  }
+  str << "]";
+  return str;
+}
+
+std::ostream& operator<<(std::ostream& str, const Turn& turn)
+{
+  return str << "playerHand: " << turn.playerHand
+             << " ; otherPlayers: " << turn.otherPlayers
+             << " ; graveyard: " << turn.graveyard
+             << " ; numberOfHints: " << turn.numberOfHints;
+}
+
 class MockPlayer : public Player
 {
 public:
@@ -177,7 +210,7 @@ TEST_F(
 
 TEST_F(
   TwoPlayerGameTests,
-  GivenFirstTurnWhenPlayer1GivesValueHintToPlayer2ThenTurnGivenToPlayer2Has7Hints)
+  GivenFirstTurnWhenPlayer1GivesColorHintToPlayer2ThenTurnGivenToPlayer2Has7Hints)
 {
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerGiveHint(PLAYER_2_ID, Color::RED));
@@ -187,10 +220,41 @@ TEST_F(
 
 TEST_F(
   TwoPlayerGameTests,
-  GivenFirstTurnWhenPlayer1GivesValueHintToUnknownPlayerThenThrowNoSuchPlayerException)
+  GivenFirstTurnWhenPlayer1GivesColorHintToUnknownPlayerThenThrowNoSuchPlayerException)
 {
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerGiveHint(UNKNOWN_PLAYER_ID, Color::RED));
+  EXPECT_THROW(
+    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
+    NoSuchPlayerException);
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1GivesValueHintToPlayer2ThenPlayer2TakesAValueHint)
+{
+  EXPECT_CALL(*player1, playTurn(::testing::_))
+    .WillOnce(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
+  EXPECT_CALL(*player2, takeHint(std::list<CardId>{ 1, 3, 7 }, Value::ONE));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1GivesValueHintToPlayer2ThenTurnGivenToPlayer2Has7Hints)
+{
+  ON_CALL(*player1, playTurn(::testing::_))
+    .WillByDefault(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
+  EXPECT_CALL(*player2, playTurn(Field(&Turn::numberOfHints, 7)));
+  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1GivesValueHintToUnknownPlayerThenThrowNoSuchPlayerException)
+{
+  ON_CALL(*player1, playTurn(::testing::_))
+    .WillByDefault(PlayerGiveHint(UNKNOWN_PLAYER_ID, Value::ONE));
   EXPECT_THROW(
     { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
     NoSuchPlayerException);

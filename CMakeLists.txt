@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(AceOfSpace CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
-set_property(GLOBAL PROPERTY CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -pedantic -Werror -Wunused)
 
 find_package(Boost REQUIRED program_options system)
@@ -38,6 +37,8 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 include_directories(include)
 
 add_executable(test_game src/Game.cpp src/GameTest.cpp)
+set_property(TARGET test_game PROPERTY CXX_STANDARD 17)
+
 target_link_libraries(test_game gmock_main gtest gmock ${CMAKE_THREAD_LIBS_INIT})
 
 enable_testing()

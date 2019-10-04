@@ -5,15 +5,18 @@
 class TurnImpl : public Turn
 {
   std::function<void(PlayerId, Color)> giveColorHintImpl;
+  std::function<void(PlayerId, Value)> giveValueHintImpl;
 
 public:
   TurnImpl(std::list<CardId> playerHand,
            std::map<PlayerId, Cards> otherPlayers,
            Cards graveyard,
            int numberOfHints,
-           std::function<void(PlayerId, Color)> giveColorHintImpl)
+           std::function<void(PlayerId, Color)> giveColorHintImpl,
+           std::function<void(PlayerId, Value)> giveValueHintImpl)
     : Turn{ playerHand, otherPlayers, graveyard, numberOfHints }
     , giveColorHintImpl(giveColorHintImpl)
+    , giveValueHintImpl(giveValueHintImpl)
   {
   }
 
@@ -22,7 +25,10 @@ public:
     giveColorHintImpl(playerId, color);
   };
 
-  void giveHint(PlayerId, Value){};
+  void giveHint(PlayerId playerId, Value value)
+  {
+    giveValueHintImpl(playerId, value);
+  };
   void playCard(CardId){};
   void discard(CardId){};
   virtual ~TurnImpl() = default;
@@ -94,14 +100,49 @@ void Game::runPlayerTurn(Player& player)
     {},
     numberOfHints,
     std::bind(
-      &Game::passHint, this, std::placeholders::_1, std::placeholders::_2)
+      &Game::passColorHint, this, std::placeholders::_1, std::placeholders::_2),
+    std::bind(
+      &Game::passValueHint, this, std::placeholders::_1, std::placeholders::_2)
+
   };
   player.playTurn(turn);
 }
 
-void Game::passHint(PlayerId playerId, Color color)
+void Game::passColorHint(PlayerId playerId, Color color)
+{
+  auto [player, ids] = prepareHint(
+    playerId, [color](const Card& card) { return card.color == color; });
+  (*player)->takeHint(ids, color);
+}
+
+void Game::passValueHint(PlayerId playerId, Value value)
+{
+  auto [player, ids] = prepareHint(
+    playerId, [value](const Card& card) { return card.value == value; });
+  (*player)->takeHint(ids, value);
+}
+
+std::tuple<Players::iterator, std::list<CardId>> Game::prepareHint(
+  PlayerId playerId,
+  std::function<bool(const Card&)> predicate)
 {
   --numberOfHints;
+  auto player = getPlayerById(playerId);
+
+  Cards hand = hands.at(playerId);
+  std::list<CardId> ids;
+  for (auto card : hand)
+  {
+    if (predicate(card))
+    {
+      ids.push_back(card.id);
+    }
+  }
+  return { player, ids };
+}
+
+Players::iterator Game::getPlayerById(PlayerId playerId)
+{
   auto player =
     std::find_if(players.begin(), players.end(), [playerId](auto player) {
       return player->getId() == playerId;
@@ -110,14 +151,5 @@ void Game::passHint(PlayerId playerId, Color color)
   {
     throw NoSuchPlayerException();
   }
-  Cards hand = hands.at(playerId);
-  std::list<CardId> ids;
-  for (auto card : hand)
-  {
-    if (card.color == color)
-    {
-      ids.push_back(card.id);
-    }
-  }
-  (*player)->takeHint(ids, color);
+  return player;
 }

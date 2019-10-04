@@ -2,6 +2,7 @@
 #include "Card.hpp"
 #include "Ids.hpp"
 #include "Player.hpp"
+#include <functional>
 #include <list>
 #include <memory>
 #include <stdexcept>
@@ -26,7 +27,12 @@ class Game
   void runPlayerTurn(Player& player);
   void validate();
   void play();
-  void passHint(PlayerId, Color);
+  void passColorHint(PlayerId, Color);
+  void passValueHint(PlayerId, Value);
+  std::tuple<Players::iterator, std::list<CardId>> prepareHint(
+    PlayerId player,
+    std::function<bool(const Card&)> predicate);
+  Players::iterator getPlayerById(PlayerId);
 
   Players players;
   Cards deck;
