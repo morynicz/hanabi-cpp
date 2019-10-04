@@ -42,7 +42,7 @@ class Game
   Players players;
   Cards deck;
   std::map<PlayerId, Cards> hands;
-  int numberOfHints;
+  unsigned char numberOfHints;
 
 public:
   Game(Game&) = delete;

@@ -182,6 +182,7 @@ TEST_F(TwoPlayerGameTests,
     *player1,
     playTurn(::testing::AllOf(
       Field(&Turn::numberOfHints, 8),
+      Field(&Turn::numberOfLives, 3),
       Field(&Turn::playerHand,
             ElementsAre(
               deck[0].id, deck[2].id, deck[4].id, deck[6].id, deck[8].id)),

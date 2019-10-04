@@ -13,11 +13,13 @@ public:
   Turn(std::list<CardId> playerHand,
        std::map<PlayerId, Cards> otherPlayers,
        Cards graveyard,
-       int numberOfHints)
+       unsigned char numberOfHints,
+       unsigned char numberOfLives)
     : playerHand(playerHand)
     , otherPlayers(otherPlayers)
     , graveyard(graveyard)
     , numberOfHints(numberOfHints)
+    , numberOfLives(numberOfLives)
   {
   }
 
@@ -25,7 +27,8 @@ public:
   const std::map<PlayerId, Cards> otherPlayers;
   const Cards graveyard;
   const std::map<Color, Value> stacks;
-  const int numberOfHints;
+  const unsigned char numberOfHints;
+  const unsigned char numberOfLives;
 
   virtual void giveHint(PlayerId, Color) = 0;
   virtual void giveHint(PlayerId, Value) = 0;

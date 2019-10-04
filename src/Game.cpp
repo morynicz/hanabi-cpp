@@ -12,11 +12,12 @@ public:
   TurnImpl(std::list<CardId> playerHand,
            std::map<PlayerId, Cards> otherPlayers,
            Cards graveyard,
-           int numberOfHints,
+           unsigned char numberOfHints,
+           unsigned char numberOfLives,
            std::function<void(PlayerId, Color)> giveColorHintImpl,
            std::function<void(PlayerId, Value)> giveValueHintImpl,
            std::function<void(CardId)> playCardImpl)
-    : Turn{ playerHand, otherPlayers, graveyard, numberOfHints }
+    : Turn{ playerHand, otherPlayers, graveyard, numberOfHints, numberOfLives }
     , giveColorHintImpl(giveColorHintImpl)
     , giveValueHintImpl(giveValueHintImpl)
     , playCardImpl(playCardImpl)
@@ -102,6 +103,7 @@ void Game::runPlayerTurn(Player& player)
       { players.back()->getId(), hands[players.back()->getId()] } },
     {},
     numberOfHints,
+    3,
     std::bind(
       &Game::passColorHint, this, std::placeholders::_1, std::placeholders::_2),
     std::bind(
