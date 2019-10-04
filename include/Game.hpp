@@ -25,6 +25,9 @@ class CardNotInHandException : public std::exception
 
 using Players = std::list<std::shared_ptr<Player>>;
 
+constexpr unsigned char MAX_LIVES = 3;
+constexpr unsigned char MAX_HINTS = 8;
+
 class Game
 {
   void dealCards();
@@ -42,6 +45,7 @@ class Game
   void discard(PlayerId, CardId);
   bool isOpeningNewStack(const Card&);
   Card getCard(PlayerId, CardId);
+  void advancePlayer(Players::iterator& playersIt);
 
   Players players;
   Cards deck;
@@ -50,8 +54,10 @@ class Game
   Cards graveyard;
   unsigned char numberOfHints;
   unsigned char numberOfLives;
+  Players::iterator currentPlayer;
 
 public:
   Game(Game&) = delete;
   Game(Players& players, Cards);
+  void turn();
 };

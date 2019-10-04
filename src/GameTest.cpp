@@ -163,11 +163,15 @@ struct TwoPlayerGameTests : public ::testing::Test
              { 7, Color::WHITE, Value::ONE },
              { 8, Color::BLUE, Value::TWO },
              { 9, Color::YELLOW, Value::FOUR },
-             { 10, Color::RED, Value::ONE } })
+             { 10, Color::RED, Value::ONE },
+             { 10, Color::RED, Value::TWO } })
     , players{ player1, player2 }
+    , game()
   {
     EXPECT_CALL(*player1, getId()).WillRepeatedly(Return(PLAYER_1_ID));
     EXPECT_CALL(*player2, getId()).WillRepeatedly(Return(PLAYER_2_ID));
+    game = std::make_unique<Game>(players,
+                                  std::list<Card>(deck.begin(), deck.end()));
   }
 
   std::vector<Card> deck;
@@ -176,6 +180,7 @@ struct TwoPlayerGameTests : public ::testing::Test
   std::shared_ptr<MockPlayer> player2 =
     std::make_shared<::testing::NiceMock<MockPlayer>>();
   Players players;
+  std::unique_ptr<Game> game;
 };
 
 TEST_F(TwoPlayerGameTests,
@@ -195,7 +200,7 @@ TEST_F(TwoPlayerGameTests,
           PLAYER_2_ID, Cards{ deck[1], deck[3], deck[5], deck[7], deck[9] } })),
       Field(&Turn::graveyard, ::testing::IsEmpty()),
       Field(&Turn::stacks, ::testing::IsEmpty()))));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
 }
 
 ACTION_P2(PlayerGiveHint, playerId, hint)
@@ -210,7 +215,8 @@ TEST_F(
   EXPECT_CALL(*player1, playTurn(::testing::_))
     .WillOnce(PlayerGiveHint(PLAYER_2_ID, Color::RED));
   EXPECT_CALL(*player2, takeHint(std::list<CardId>{ 1 }, Color::RED));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
 }
 
 TEST_F(
@@ -220,7 +226,8 @@ TEST_F(
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerGiveHint(PLAYER_2_ID, Color::RED));
   EXPECT_CALL(*player2, playTurn(Field(&Turn::numberOfHints, 7)));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
 }
 
 TEST_F(
@@ -229,9 +236,7 @@ TEST_F(
 {
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerGiveHint(UNKNOWN_PLAYER_ID, Color::RED));
-  EXPECT_THROW(
-    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
-    NoSuchPlayerException);
+  EXPECT_THROW({ game->turn(); }, NoSuchPlayerException);
 }
 
 TEST_F(
@@ -241,7 +246,8 @@ TEST_F(
   EXPECT_CALL(*player1, playTurn(::testing::_))
     .WillOnce(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
   EXPECT_CALL(*player2, takeHint(std::list<CardId>{ 1, 3, 7 }, Value::ONE));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
 }
 
 TEST_F(
@@ -251,7 +257,8 @@ TEST_F(
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
   EXPECT_CALL(*player2, playTurn(Field(&Turn::numberOfHints, 7)));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
 }
 
 TEST_F(
@@ -260,9 +267,7 @@ TEST_F(
 {
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerGiveHint(UNKNOWN_PLAYER_ID, Value::ONE));
-  EXPECT_THROW(
-    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
-    NoSuchPlayerException);
+  EXPECT_THROW({ game->turn(); }, NoSuchPlayerException);
 }
 
 ACTION_P(PlayerPlayCard, cardId)
@@ -275,9 +280,7 @@ TEST_F(
   GivenFirstTurnWhenPlayer1PlaysCardNotInHisHandThenCardNotInHandExceptionIsThrown)
 {
   ON_CALL(*player1, playTurn(::testing::_)).WillByDefault(PlayerPlayCard(1000));
-  EXPECT_THROW(
-    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
-    CardNotInHandException);
+  EXPECT_THROW({ game->turn(); }, CardNotInHandException);
 }
 
 TEST_F(TwoPlayerGameTests,
@@ -298,7 +301,8 @@ TEST_F(TwoPlayerGameTests,
               Cards{ deck[0], deck[4], deck[6], deck[8], deck[10] } })),
       Field(&Turn::graveyard, ElementsAre(deck[2])),
       Field(&Turn::stacks, ::testing::IsEmpty()))));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
 }
 
 TEST_F(TwoPlayerGameTests,
@@ -319,7 +323,8 @@ TEST_F(TwoPlayerGameTests,
       Field(&Turn::graveyard, ::testing::IsEmpty()),
       Field(&Turn::stacks,
             ElementsAre(std::pair<Color, Value>{ Color::BLUE, Value::ONE })))));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
 }
 
 ACTION_P(PlayerDiscardCard, cardId)
@@ -333,9 +338,7 @@ TEST_F(
 {
   ON_CALL(*player1, playTurn(::testing::_))
     .WillByDefault(PlayerDiscardCard(1000));
-  EXPECT_THROW(
-    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
-    CardNotInHandException);
+  EXPECT_THROW({ game->turn(); }, CardNotInHandException);
 }
 
 TEST_F(
@@ -356,5 +359,42 @@ TEST_F(
               Cards{ deck[2], deck[4], deck[6], deck[8], deck[10] } })),
       Field(&Turn::stacks, ::testing::IsEmpty()),
       Field(&Turn::graveyard, ElementsAre(deck[0])))));
-  Game game(players, std::list<Card>(deck.begin(), deck.end()));
+  game->turn();
+  game->turn();
+}
+
+TEST_F(TwoPlayerGameTests,
+       GivenPlayerOneUsedHintWhenPlayerTwoDiscardsCardThenHintIsRestored)
+{
+  {
+    ::testing::InSequence seq;
+    EXPECT_CALL(
+      *player1,
+      playTurn(::testing::AllOf(
+        Field(&Turn::otherPlayers,
+              ElementsAre(std::pair<PlayerId, Cards>{
+                PLAYER_2_ID,
+                Cards{ deck[1], deck[3], deck[5], deck[7], deck[9] } })),
+        Field(&Turn::graveyard, ::testing::IsEmpty()))))
+      .WillOnce(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
+    ON_CALL(*player2, playTurn(::testing::_))
+      .WillByDefault(PlayerDiscardCard(1));
+    EXPECT_CALL(
+      *player1,
+      playTurn(::testing::AllOf(
+        Field(&Turn::numberOfHints, 8),
+        Field(&Turn::numberOfLives, 3),
+        Field(&Turn::playerHand,
+              ElementsAre(
+                deck[0].id, deck[2].id, deck[4].id, deck[6].id, deck[8].id)),
+        Field(&Turn::otherPlayers,
+              ElementsAre(std::pair<PlayerId, Cards>{
+                PLAYER_2_ID,
+                Cards{ deck[3], deck[5], deck[7], deck[9], deck[10] } })),
+        Field(&Turn::graveyard, ElementsAre(deck[1])),
+        Field(&Turn::stacks, ::testing::IsEmpty()))));
+  }
+  game->turn();
+  game->turn();
+  game->turn();
 }

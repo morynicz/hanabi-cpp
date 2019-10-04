@@ -58,8 +58,9 @@ Game::Game(Players& players, std::list<Card> deck)
   : players(players)
   , deck(deck)
   , hands()
-  , numberOfHints(8)
-  , numberOfLives(3)
+  , numberOfHints(MAX_HINTS)
+  , numberOfLives(MAX_LIVES)
+  , currentPlayer(players.begin())
 {
   validate();
   play();
@@ -81,8 +82,20 @@ void Game::play()
   }
 
   dealCards();
-  runPlayerTurn(*players.front());
-  runPlayerTurn(*players.back());
+  currentPlayer = players.begin();
+}
+
+void Game::turn()
+{
+  runPlayerTurn(**currentPlayer);
+  advancePlayer(currentPlayer);
+}
+
+void Game::advancePlayer(Players::iterator& playersIt)
+{
+  playersIt++;
+  if (playersIt == players.end())
+    playersIt = players.begin();
 }
 
 void Game::dealCards()
@@ -91,10 +104,7 @@ void Game::dealCards()
   for (size_t i = 0; i < 10; ++i)
   {
     drawCard((*playersIt)->getId());
-
-    playersIt++;
-    if (playersIt == players.end())
-      playersIt = players.begin();
+    advancePlayer(playersIt);
   }
 }
 
@@ -185,9 +195,9 @@ Card Game::getCard(PlayerId playerId, CardId cardId)
   return *card;
 }
 
-void Game::playCard(PlayerId currentPlayer, CardId cardId)
+void Game::playCard(PlayerId currentPlayerId, CardId cardId)
 {
-  auto card = getCard(currentPlayer, cardId);
+  auto card = getCard(currentPlayerId, cardId);
   if (isOpeningNewStack(card))
   {
     stacks.insert_or_assign(card.color, card.value);
@@ -197,7 +207,7 @@ void Game::playCard(PlayerId currentPlayer, CardId cardId)
     graveyard.push_back(card);
     --numberOfLives;
   }
-  drawCard(currentPlayer);
+  drawCard(currentPlayerId);
 }
 
 bool Game::isOpeningNewStack(const Card& card)
@@ -205,9 +215,11 @@ bool Game::isOpeningNewStack(const Card& card)
   return card.value == Value::ONE and stacks.find(card.color) == stacks.end();
 }
 
-void Game::discard(PlayerId currentPlayer, CardId cardId)
+void Game::discard(PlayerId currentPlayerId, CardId cardId)
 {
-  auto card = getCard(currentPlayer, cardId);
+  auto card = getCard(currentPlayerId, cardId);
   graveyard.push_back(card);
-  drawCard(currentPlayer);
+  if (numberOfHints < MAX_HINTS)
+    ++numberOfHints;
+  drawCard(currentPlayerId);
 }
