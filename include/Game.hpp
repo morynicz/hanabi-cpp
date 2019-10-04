@@ -9,6 +9,7 @@
 class NotEnoughPlayersException : public std::exception
 {
 };
+
 class TooManyPlayersException : public std::exception
 {
 };

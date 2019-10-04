@@ -102,6 +102,14 @@ void Game::runPlayerTurn(Player& player)
 void Game::passHint(PlayerId playerId, Color color)
 {
   --numberOfHints;
+  auto player =
+    std::find_if(players.begin(), players.end(), [playerId](auto player) {
+      return player->getId() == playerId;
+    });
+  if (players.end() == player)
+  {
+    throw NoSuchPlayerException();
+  }
   Cards hand = hands.at(playerId);
   std::list<CardId> ids;
   for (auto card : hand)
@@ -111,9 +119,5 @@ void Game::passHint(PlayerId playerId, Color color)
       ids.push_back(card.id);
     }
   }
-  auto player =
-    std::find_if(players.begin(), players.end(), [playerId](auto player) {
-      return player->getId() == playerId;
-    });
   (*player)->takeHint(ids, color);
 }

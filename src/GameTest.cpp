@@ -90,6 +90,7 @@ class DummyPlayer : public Player
   void takeHint(std::list<CardId>, Value){};
 };
 
+constexpr PlayerId UNKNOWN_PLAYER_ID = 333;
 constexpr PlayerId PLAYER_1_ID = 2;
 constexpr PlayerId PLAYER_2_ID = 4;
 
@@ -182,4 +183,15 @@ TEST_F(
     .WillByDefault(PlayerGiveHint(PLAYER_2_ID, Color::RED));
   EXPECT_CALL(*player2, playTurn(Field(&Turn::numberOfHints, 7)));
   Game game(players, std::list<Card>(deck.begin(), deck.end()));
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenFirstTurnWhenPlayer1GivesValueHintToUnknownPlayerThenThrowNoSuchPlayerException)
+{
+  ON_CALL(*player1, playTurn(::testing::_))
+    .WillByDefault(PlayerGiveHint(UNKNOWN_PLAYER_ID, Color::RED));
+  EXPECT_THROW(
+    { Game game(players, std::list<Card>(deck.begin(), deck.end())); },
+    NoSuchPlayerException);
 }
