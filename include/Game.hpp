@@ -19,6 +19,10 @@ class NoSuchPlayerException : public std::exception
 {
 };
 
+class CardNotInHandException : public std::exception
+{
+};
+
 using Players = std::list<std::shared_ptr<Player>>;
 
 class Game
@@ -33,6 +37,7 @@ class Game
     PlayerId player,
     std::function<bool(const Card&)> predicate);
   Players::iterator getPlayerById(PlayerId);
+  void playCard(CardId);
 
   Players players;
   Cards deck;

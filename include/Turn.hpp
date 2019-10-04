@@ -24,6 +24,7 @@ public:
   const std::list<CardId> playerHand;
   const std::map<PlayerId, Cards> otherPlayers;
   const Cards graveyard;
+  const std::map<Color, Value> stacks;
   const int numberOfHints;
 
   virtual void giveHint(PlayerId, Color) = 0;

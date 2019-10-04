@@ -6,6 +6,7 @@ class TurnImpl : public Turn
 {
   std::function<void(PlayerId, Color)> giveColorHintImpl;
   std::function<void(PlayerId, Value)> giveValueHintImpl;
+  std::function<void(CardId)> playCardImpl;
 
 public:
   TurnImpl(std::list<CardId> playerHand,
@@ -13,10 +14,12 @@ public:
            Cards graveyard,
            int numberOfHints,
            std::function<void(PlayerId, Color)> giveColorHintImpl,
-           std::function<void(PlayerId, Value)> giveValueHintImpl)
+           std::function<void(PlayerId, Value)> giveValueHintImpl,
+           std::function<void(CardId)> playCardImpl)
     : Turn{ playerHand, otherPlayers, graveyard, numberOfHints }
     , giveColorHintImpl(giveColorHintImpl)
     , giveValueHintImpl(giveValueHintImpl)
+    , playCardImpl(playCardImpl)
   {
   }
 
@@ -29,7 +32,7 @@ public:
   {
     giveValueHintImpl(playerId, value);
   };
-  void playCard(CardId){};
+  void playCard(CardId cardId) { playCardImpl(cardId); };
   void discard(CardId){};
   virtual ~TurnImpl() = default;
 };
@@ -102,7 +105,8 @@ void Game::runPlayerTurn(Player& player)
     std::bind(
       &Game::passColorHint, this, std::placeholders::_1, std::placeholders::_2),
     std::bind(
-      &Game::passValueHint, this, std::placeholders::_1, std::placeholders::_2)
+      &Game::passValueHint, this, std::placeholders::_1, std::placeholders::_2),
+    std::bind(&Game::playCard, this, std::placeholders::_1)
 
   };
   player.playTurn(turn);
@@ -152,4 +156,9 @@ Players::iterator Game::getPlayerById(PlayerId playerId)
     throw NoSuchPlayerException();
   }
   return player;
+}
+
+void Game::playCard(CardId)
+{
+  throw CardNotInHandException();
 }
