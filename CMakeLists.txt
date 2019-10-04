@@ -3,6 +3,7 @@ project(AceOfSpace CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
 set_property(GLOBAL PROPERTY CXX_STANDARD 17)
+add_compile_options(-Wall -Wextra -pedantic -Werror -Wunused)
 
 find_package(Boost REQUIRED program_options system)
 find_package(Threads)
