@@ -4,6 +4,10 @@
 #include <gtest/gtest.h>
 #include <memory>
 
+using ::testing::ElementsAre;
+using ::testing::Field;
+using ::testing::Return;
+
 bool operator==(const Card& lhs, const Card& rhs)
 {
   return lhs.id == rhs.id;
@@ -61,18 +65,16 @@ struct TwoPlayerGameTests : public ::testing::Test
              { 10, Color::RED, Value::ONE } })
     , players{ player1, player2 }
   {
-    EXPECT_CALL(*player1, getId())
-      .WillRepeatedly(::testing::Return(PLAYER_1_ID));
-    EXPECT_CALL(*player2, getId())
-      .WillRepeatedly(::testing::Return(PLAYER_2_ID));
+    EXPECT_CALL(*player1, getId()).WillRepeatedly(Return(PLAYER_1_ID));
+    EXPECT_CALL(*player2, getId()).WillRepeatedly(Return(PLAYER_2_ID));
   }
 
+  std::vector<Card> deck;
   std::shared_ptr<MockPlayer> player1 =
     std::make_shared<::testing::StrictMock<MockPlayer>>();
   std::shared_ptr<MockPlayer> player2 =
     std::make_shared<::testing::StrictMock<MockPlayer>>();
   Players players;
-  std::vector<Card> deck;
 };
 
 TEST_F(
@@ -82,15 +84,14 @@ TEST_F(
   EXPECT_CALL(
     *player1,
     playTurn(::testing::AllOf(
-      ::testing::Field(&Turn::numberOfHints, 8),
-      ::testing::Field(
-        &Turn::playerHand,
-        ::testing::ElementsAre(
-          deck[0].id, deck[2].id, deck[4].id, deck[6].id, deck[8].id)),
-      ::testing::Field(
+      Field(&Turn::numberOfHints, 8),
+      Field(&Turn::playerHand,
+            ElementsAre(
+              deck[0].id, deck[2].id, deck[4].id, deck[6].id, deck[8].id)),
+      Field(
         &Turn::otherPlayers,
-        ::testing::ElementsAre(std::pair<PlayerId, Hand>{
-          PLAYER_2_ID,
-          Hand{ deck[1], deck[3], deck[5], deck[7], deck[9] } })))));
+        ElementsAre(std::pair<PlayerId, Cards>{
+          PLAYER_2_ID, Cards{ deck[1], deck[3], deck[5], deck[7], deck[9] } })),
+      Field(&Turn::graveyard, ::testing::IsEmpty()))));
   Game game(players, std::list<Card>(deck.begin(), deck.end()));
 }

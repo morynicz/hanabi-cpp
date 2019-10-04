@@ -20,7 +20,10 @@ class Game
   class TurnImpl : public Turn
   {
   public:
-    TurnImpl(std::list<CardId>, std::map<PlayerId, std::list<Card>>, int);
+    TurnImpl(std::list<CardId>,
+             std::map<PlayerId, std::list<Card>>,
+             Cards graveyard,
+             int);
     void giveHint(PlayerId, Color);
     void giveHint(PlayerId, Value);
     void playCard(CardId);
@@ -28,7 +31,16 @@ class Game
     virtual ~TurnImpl() = default;
   };
 
+  void dealCards();
+  void runPlayerTurn(Player& player);
+  void validate();
+  void play();
+
+  Players players;
+  Cards deck;
+  std::map<PlayerId, Cards> hands;
+
 public:
   Game(Game&) = delete;
-  Game(Players& players, std::list<Card>);
+  Game(Players& players, Cards);
 };

@@ -5,22 +5,25 @@
 #include <list>
 #include <map>
 
-using Hand = std::list<Card>;
+using Cards = std::list<Card>;
 
 class Turn
 {
 public:
   Turn(std::list<CardId> playerHand,
-       std::map<PlayerId, Hand> otherPlayers,
+       std::map<PlayerId, Cards> otherPlayers,
+       Cards graveyard,
        int numberOfHints)
     : playerHand(playerHand)
     , otherPlayers(otherPlayers)
+    , graveyard(graveyard)
     , numberOfHints(numberOfHints)
   {
   }
 
   const std::list<CardId> playerHand;
-  const std::map<PlayerId, Hand> otherPlayers;
+  const std::map<PlayerId, Cards> otherPlayers;
+  const Cards graveyard;
   const int numberOfHints;
 
   virtual void giveHint(PlayerId, Color) = 0;
