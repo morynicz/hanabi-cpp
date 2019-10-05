@@ -118,18 +118,33 @@ void Game::drawCard(PlayerId playerId)
 {
   if (not deck.empty())
   {
-    hands[playerId].push_back(deck.front());
+    auto card = deck.front();
     deck.pop_front();
+
+    hands[playerId].putCard(card);
   }
+}
+
+std::map<PlayerId, Cards> Game::getOtherPlayerHands(
+  const PlayerId playerId) const
+{
+  std::map<PlayerId, Cards> otherPlayersHands;
+  std::transform(hands.begin(),
+                 hands.end(),
+                 std::inserter(otherPlayersHands, otherPlayersHands.begin()),
+                 [](const auto& pair) -> std::pair<PlayerId, Cards> {
+                   return { pair.first, pair.second.getCards() };
+                 });
+  otherPlayersHands.erase(playerId);
+  return otherPlayersHands;
 }
 
 void Game::runPlayerTurn(Player& player)
 {
   auto playerId = player.getId();
-  auto otherPlayersHands(hands);
-  otherPlayersHands.erase(playerId);
+  auto otherPlayersHands = getOtherPlayerHands(playerId);
   TurnImpl turn{
-    transformToCardIds(hands, playerId),
+    hands.at(playerId).getIds(),
     otherPlayersHands,
     graveyard,
     stacks,
@@ -168,15 +183,8 @@ std::tuple<Players::const_iterator, std::list<CardId>> Game::prepareHint(
   --numberOfHints;
   auto player = getPlayerById(playerId);
 
-  Cards hand = hands.at(playerId);
-  std::list<CardId> ids;
-  for (auto card : hand)
-  {
-    if (predicate(card))
-    {
-      ids.push_back(card.id);
-    }
-  }
+  Hand hand = hands.at(playerId);
+  std::list<CardId> ids = hand.getIds(predicate);
   return { player, ids };
 }
 
@@ -195,15 +203,8 @@ Players::const_iterator Game::getPlayerById(PlayerId playerId) const
 
 Card Game::getCard(PlayerId playerId, CardId cardId)
 {
-  Cards& hand = hands.at(playerId);
-  auto card =
-    std::find_if(hand.begin(), hand.end(), [cardId](const Card& card) {
-      return card.id == cardId;
-    });
-  if (card == hand.end())
-    throw CardNotInHandException();
-  hand.erase(card);
-  return *card;
+  Hand& hand = hands.at(playerId);
+  return hand.getCard(cardId);
 }
 
 void Game::playCard(PlayerId currentPlayerId, CardId cardId)

@@ -1,5 +1,6 @@
 #pragma once
 #include "Card.hpp"
+#include "Hand.hpp"
 #include "Ids.hpp"
 #include "Player.hpp"
 #include <functional>
@@ -16,10 +17,6 @@ class TooManyPlayersException : public std::exception
 };
 
 class NoSuchPlayerException : public std::exception
-{
-};
-
-class CardNotInHandException : public std::exception
 {
 };
 
@@ -55,10 +52,11 @@ class Game
   Card getCard(PlayerId, CardId);
   void advancePlayer(Players::const_iterator& playersIt);
   bool isOver() const;
+  std::map<PlayerId, Cards> getOtherPlayerHands(const PlayerId) const;
 
   Players players;
   Cards deck;
-  std::map<PlayerId, Cards> hands;
+  std::map<PlayerId, Hand> hands;
   std::map<Color, Value> stacks;
   Cards graveyard;
   unsigned char numberOfHints;
