@@ -10,12 +10,12 @@ class TurnImpl : public Turn
   std::function<void(CardId)> discardCardImpl;
 
 public:
-  TurnImpl(std::list<CardId> playerHand,
-           std::map<PlayerId, Cards> otherPlayers,
-           Cards graveyard,
-           std::map<Color, Value> stacks,
-           unsigned char numberOfHints,
-           unsigned char numberOfLives,
+  TurnImpl(const std::list<CardId>& playerHand,
+           const std::map<PlayerId, Cards>& otherPlayers,
+           const Cards& graveyard,
+           const std::map<Color, Value>& stacks,
+           const unsigned char numberOfHints,
+           const unsigned char numberOfLives,
            std::function<void(PlayerId, Color)> giveColorHintImpl,
            std::function<void(PlayerId, Value)> giveValueHintImpl,
            std::function<void(CardId)> playCardImpl,
@@ -29,17 +29,17 @@ public:
   {
   }
 
-  void giveHint(PlayerId playerId, Color color)
+  void giveHint(PlayerId playerId, Color color) override
   {
     giveColorHintImpl(playerId, color);
   };
 
-  void giveHint(PlayerId playerId, Value value)
+  void giveHint(PlayerId playerId, Value value) override
   {
     giveValueHintImpl(playerId, value);
   };
-  void playCard(CardId cardId) { playCardImpl(cardId); };
-  void discard(CardId cardId) { discardCardImpl(cardId); };
+  void playCard(CardId cardId) override { playCardImpl(cardId); };
+  void discard(CardId cardId) override { discardCardImpl(cardId); };
   virtual ~TurnImpl() = default;
 };
 
@@ -54,13 +54,13 @@ std::list<CardId> transformToCardIds(const std::map<PlayerId, Cards>& hands,
   return cardIds;
 }
 
-Game::Game(Players& players, std::list<Card> deck)
+Game::Game(const Players& players, std::list<Card> deck)
   : players(players)
   , deck(deck)
   , hands()
   , numberOfHints(MAX_HINTS)
   , numberOfLives(MAX_LIVES)
-  , currentPlayer(players.begin())
+  , currentPlayer(players.cbegin())
 {
   validate();
   play();
@@ -76,13 +76,12 @@ void Game::validate()
 
 void Game::play()
 {
+  currentPlayer = players.cbegin(); // this is some weird stuff
   for (auto player : players)
   {
     hands.insert({ player->getId(), {} });
   }
-
   dealCards();
-  currentPlayer = players.begin();
 }
 
 void Game::turn()
@@ -91,16 +90,16 @@ void Game::turn()
   advancePlayer(currentPlayer);
 }
 
-void Game::advancePlayer(Players::iterator& playersIt)
+void Game::advancePlayer(Players::const_iterator& playersIt)
 {
   playersIt++;
-  if (playersIt == players.end())
-    playersIt = players.begin();
+  if (playersIt == players.cend())
+    playersIt = players.cbegin();
 }
 
 void Game::dealCards()
 {
-  auto playersIt = players.begin();
+  auto playersIt = players.cbegin();
   for (size_t i = 0; i < 10; ++i)
   {
     drawCard((*playersIt)->getId());
@@ -150,7 +149,7 @@ void Game::passValueHint(PlayerId playerId, Value value)
   (*player)->takeHint(ids, value);
 }
 
-std::tuple<Players::iterator, std::list<CardId>> Game::prepareHint(
+std::tuple<Players::const_iterator, std::list<CardId>> Game::prepareHint(
   PlayerId playerId,
   std::function<bool(const Card&)> predicate)
 {
@@ -169,7 +168,7 @@ std::tuple<Players::iterator, std::list<CardId>> Game::prepareHint(
   return { player, ids };
 }
 
-Players::iterator Game::getPlayerById(PlayerId playerId)
+Players::const_iterator Game::getPlayerById(PlayerId playerId) const
 {
   auto player =
     std::find_if(players.begin(), players.end(), [playerId](auto player) {

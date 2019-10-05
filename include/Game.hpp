@@ -36,16 +36,16 @@ class Game
   void play();
   void passColorHint(PlayerId, Color);
   void passValueHint(PlayerId, Value);
-  std::tuple<Players::iterator, std::list<CardId>> prepareHint(
+  std::tuple<Players::const_iterator, std::list<CardId>> prepareHint(
     PlayerId,
     std::function<bool(const Card&)>);
-  Players::iterator getPlayerById(PlayerId);
+  Players::const_iterator getPlayerById(PlayerId) const;
   void playCard(PlayerId, CardId);
   void drawCard(PlayerId);
   void discard(PlayerId, CardId);
   bool isOpeningNewStack(const Card&);
   Card getCard(PlayerId, CardId);
-  void advancePlayer(Players::iterator& playersIt);
+  void advancePlayer(Players::const_iterator& playersIt);
 
   Players players;
   Cards deck;
@@ -54,10 +54,11 @@ class Game
   Cards graveyard;
   unsigned char numberOfHints;
   unsigned char numberOfLives;
-  Players::iterator currentPlayer;
+  Players::const_iterator currentPlayer;
 
 public:
-  Game(Game&) = delete;
-  Game(Players& players, Cards);
+  Game(const Game&) = delete;
+  Game(Game&&) = delete;
+  Game(const Players& players, Cards);
   void turn();
 };
