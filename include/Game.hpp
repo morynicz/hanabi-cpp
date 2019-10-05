@@ -23,6 +23,10 @@ class CardNotInHandException : public std::exception
 {
 };
 
+class NoMoreHintsAvailableException : public std::exception
+{
+};
+
 using Players = std::list<std::shared_ptr<Player>>;
 
 constexpr unsigned char MAX_LIVES = 3;

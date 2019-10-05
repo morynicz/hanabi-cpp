@@ -398,3 +398,18 @@ TEST_F(TwoPlayerGameTests,
   game->turn();
   game->turn();
 }
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenPlayersUsedUpAllTheHintsWhenPlayerTriesToUseAHintThenNoMoreHintsAvailableExceptionIsThrown)
+{
+  ON_CALL(*player1, playTurn(::testing::_))
+    .WillByDefault(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
+  ON_CALL(*player2, playTurn(::testing::_))
+    .WillByDefault(PlayerGiveHint(PLAYER_1_ID, Value::ONE));
+
+  for (int i = 0; i < MAX_HINTS; ++i)
+    game->turn();
+
+  EXPECT_THROW(game->turn(), NoMoreHintsAvailableException);
+}

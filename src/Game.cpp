@@ -153,6 +153,8 @@ std::tuple<Players::const_iterator, std::list<CardId>> Game::prepareHint(
   PlayerId playerId,
   std::function<bool(const Card&)> predicate)
 {
+  if (0 == numberOfHints)
+    throw NoMoreHintsAvailableException();
   --numberOfHints;
   auto player = getPlayerById(playerId);
 
