@@ -413,3 +413,20 @@ TEST_F(
 
   EXPECT_THROW(game->turn(), NoMoreHintsAvailableException);
 }
+
+TEST_F(
+  TwoPlayerGameTests,
+  GIvenPlayersUsedUpAllLivesWhenPlayerTriesToTakeTurnGameIsOverExceptionIsThrown)
+{
+  EXPECT_CALL(*player1, playTurn(Field(&Turn::numberOfLives, 3)))
+    .WillOnce(PlayerPlayCard(2));
+  EXPECT_CALL(*player2, playTurn(Field(&Turn::numberOfLives, 2)))
+    .WillOnce(PlayerPlayCard(5));
+  EXPECT_CALL(*player1, playTurn(Field(&Turn::numberOfLives, 1)))
+    .WillOnce(PlayerPlayCard(4));
+
+  for (int i = 0; i < 3; ++i)
+    game->turn();
+
+  EXPECT_THROW(game->turn(), GameIsOverException);
+}

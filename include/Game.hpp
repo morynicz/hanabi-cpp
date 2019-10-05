@@ -27,6 +27,10 @@ class NoMoreHintsAvailableException : public std::exception
 {
 };
 
+class GameIsOverException : public std::exception
+{
+};
+
 using Players = std::list<std::shared_ptr<Player>>;
 
 constexpr unsigned char MAX_LIVES = 3;
@@ -50,6 +54,7 @@ class Game
   bool isOpeningNewStack(const Card&);
   Card getCard(PlayerId, CardId);
   void advancePlayer(Players::const_iterator& playersIt);
+  bool isOver() const;
 
   Players players;
   Cards deck;

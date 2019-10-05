@@ -86,6 +86,8 @@ void Game::play()
 
 void Game::turn()
 {
+  if (isOver())
+    throw GameIsOverException();
   runPlayerTurn(**currentPlayer);
   advancePlayer(currentPlayer);
 }
@@ -95,6 +97,11 @@ void Game::advancePlayer(Players::const_iterator& playersIt)
   playersIt++;
   if (playersIt == players.cend())
     playersIt = players.cbegin();
+}
+
+bool Game::isOver() const
+{
+  return numberOfLives <= 0;
 }
 
 void Game::dealCards()
@@ -109,8 +116,11 @@ void Game::dealCards()
 
 void Game::drawCard(PlayerId playerId)
 {
-  hands[playerId].push_back(deck.front());
-  deck.pop_front();
+  if (not deck.empty())
+  {
+    hands[playerId].push_back(deck.front());
+    deck.pop_front();
+  }
 }
 
 void Game::runPlayerTurn(Player& player)
