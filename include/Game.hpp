@@ -3,6 +3,7 @@
 #include "Hand.hpp"
 #include "Ids.hpp"
 #include "Player.hpp"
+#include "Table.hpp"
 #include <functional>
 #include <list>
 #include <memory>
@@ -20,18 +21,11 @@ class NoSuchPlayerException : public std::exception
 {
 };
 
-class NoMoreHintsAvailableException : public std::exception
-{
-};
-
 class GameIsOverException : public std::exception
 {
 };
 
 using Players = std::list<std::shared_ptr<Player>>;
-
-constexpr unsigned char MAX_LIVES = 3;
-constexpr unsigned char MAX_HINTS = 8;
 
 class Game
 {
@@ -48,19 +42,13 @@ class Game
   void playCard(PlayerId, CardId);
   void drawCard(PlayerId);
   void discard(PlayerId, CardId);
-  bool isOpeningNewStack(const Card&);
   Card getCard(PlayerId, CardId);
   void advancePlayer(Players::const_iterator& playersIt);
-  bool isOver() const;
   std::map<PlayerId, Cards> getOtherPlayerHands(const PlayerId) const;
 
   Players players;
-  Cards deck;
+  Table table;
   std::map<PlayerId, Hand> hands;
-  std::map<Color, Value> stacks;
-  Cards graveyard;
-  unsigned char numberOfHints;
-  unsigned char numberOfLives;
   Players::const_iterator currentPlayer;
 
 public:

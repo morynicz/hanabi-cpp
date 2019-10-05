@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ids.hpp"
+#include <list>
 
 enum class Color
 {
@@ -29,3 +30,5 @@ struct Card
   Color color;
   Value value;
 };
+
+using Cards = std::list<Card>;

@@ -5,8 +5,6 @@
 #include <list>
 #include <map>
 
-using Cards = std::list<Card>;
-
 class Turn
 {
 public:

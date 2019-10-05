@@ -56,10 +56,8 @@ std::list<CardId> transformToCardIds(const std::map<PlayerId, Cards>& hands,
 
 Game::Game(const Players& players, std::list<Card> deck)
   : players(players)
-  , deck(deck)
+  , table{ deck }
   , hands()
-  , numberOfHints(MAX_HINTS)
-  , numberOfLives(MAX_LIVES)
   , currentPlayer(players.cbegin())
 {
   validate();
@@ -86,7 +84,7 @@ void Game::play()
 
 void Game::turn()
 {
-  if (isOver())
+  if (table.isOver())
     throw GameIsOverException();
   runPlayerTurn(**currentPlayer);
   advancePlayer(currentPlayer);
@@ -97,11 +95,6 @@ void Game::advancePlayer(Players::const_iterator& playersIt)
   playersIt++;
   if (playersIt == players.cend())
     playersIt = players.cbegin();
-}
-
-bool Game::isOver() const
-{
-  return numberOfLives <= 0;
 }
 
 void Game::dealCards()
@@ -116,11 +109,9 @@ void Game::dealCards()
 
 void Game::drawCard(PlayerId playerId)
 {
-  if (not deck.empty())
+  if (not table.isDeckEmpty())
   {
-    auto card = deck.front();
-    deck.pop_front();
-
+    auto card = table.drawCard();
     hands[playerId].putCard(card);
   }
 }
@@ -146,10 +137,10 @@ void Game::runPlayerTurn(Player& player)
   TurnImpl turn{
     hands.at(playerId).getIds(),
     otherPlayersHands,
-    graveyard,
-    stacks,
-    numberOfHints,
-    numberOfLives,
+    table.getGraveyard(),
+    table.getStacks(),
+    table.getNumberOfHints(),
+    table.getNumberOfLives(),
     std::bind(
       &Game::passColorHint, this, std::placeholders::_1, std::placeholders::_2),
     std::bind(
@@ -162,15 +153,13 @@ void Game::runPlayerTurn(Player& player)
 
 void Game::passColorHint(PlayerId playerId, Color color)
 {
-  auto [player, ids] = prepareHint(
-    playerId, [color](const Card& card) { return card.color == color; });
+  auto [player, ids] = prepareHint(playerId, table.getColorPredicate(color));
   (*player)->takeHint(ids, color);
 }
 
 void Game::passValueHint(PlayerId playerId, Value value)
 {
-  auto [player, ids] = prepareHint(
-    playerId, [value](const Card& card) { return card.value == value; });
+  auto [player, ids] = prepareHint(playerId, table.getValuePredicate(value));
   (*player)->takeHint(ids, value);
 }
 
@@ -178,9 +167,7 @@ std::tuple<Players::const_iterator, std::list<CardId>> Game::prepareHint(
   PlayerId playerId,
   std::function<bool(const Card&)> predicate)
 {
-  if (0 == numberOfHints)
-    throw NoMoreHintsAvailableException();
-  --numberOfHints;
+  table.useHintToken();
   auto player = getPlayerById(playerId);
 
   Hand hand = hands.at(playerId);
@@ -210,28 +197,13 @@ Card Game::getCard(PlayerId playerId, CardId cardId)
 void Game::playCard(PlayerId currentPlayerId, CardId cardId)
 {
   auto card = getCard(currentPlayerId, cardId);
-  if (isOpeningNewStack(card))
-  {
-    stacks.insert_or_assign(card.color, card.value);
-  }
-  else
-  {
-    graveyard.push_back(card);
-    --numberOfLives;
-  }
+  table.playCard(card);
   drawCard(currentPlayerId);
-}
-
-bool Game::isOpeningNewStack(const Card& card)
-{
-  return card.value == Value::ONE and stacks.find(card.color) == stacks.end();
 }
 
 void Game::discard(PlayerId currentPlayerId, CardId cardId)
 {
   auto card = getCard(currentPlayerId, cardId);
-  graveyard.push_back(card);
-  if (numberOfHints < MAX_HINTS)
-    ++numberOfHints;
+  table.discard(card);
   drawCard(currentPlayerId);
 }
