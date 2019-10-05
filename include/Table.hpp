@@ -20,6 +20,7 @@ class Table
   unsigned char numberOfHints;
   unsigned char numberOfLives;
   bool isOpeningNewStack(const Card&);
+  bool isStackOpened(const Color);
 
 public:
   Table(const Cards& deck)
@@ -36,8 +37,10 @@ public:
   unsigned char getNumberOfHints() const { return numberOfHints; }
   Card drawCard();
   inline bool isDeckEmpty() { return deck.empty(); }
-  std::function<bool(const Card&)> getColorPredicate(const Color color) const;
-  std::function<bool(const Card&)> getValuePredicate(const Value value) const;
+  virtual std::function<bool(const Card&)> getColorPredicate(
+    const Color color) const;
+  virtual std::function<bool(const Card&)> getValuePredicate(
+    const Value value) const;
   void useHintToken();
   void playCard(const Card&);
   void discard(const Card& card);

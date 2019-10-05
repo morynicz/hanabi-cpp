@@ -157,14 +157,13 @@ struct TwoPlayerGameTests : public ::testing::Test
              { 1, Color::RED, Value::ONE },
              { 2, Color::WHITE, Value::THREE },
              { 3, Color::BLUE, Value::ONE },
-             { 4, Color::WHITE, Value::TWO },
-             { 5, Color::YELLOW, Value::FIVE },
+             { 4, Color::WHITE, Value::FIVE },
+             { 5, Color::YELLOW, Value::TWO },
              { 6, Color::RED, Value::FOUR },
              { 7, Color::WHITE, Value::ONE },
-             { 8, Color::BLUE, Value::TWO },
-             { 9, Color::YELLOW, Value::FOUR },
-             { 10, Color::RED, Value::ONE },
-             { 10, Color::RED, Value::TWO } })
+             { 8, Color::YELLOW, Value::FOUR },
+             { 9, Color::BLUE, Value::TWO },
+             { 10, Color::RED, Value::ONE } })
     , players{ player1, player2 }
     , game()
   {
@@ -416,7 +415,7 @@ TEST_F(
 
 TEST_F(
   TwoPlayerGameTests,
-  GIvenPlayersUsedUpAllLivesWhenPlayerTriesToTakeTurnGameIsOverExceptionIsThrown)
+  GivenPlayersUsedUpAllLivesWhenPlayerTriesToTakeTurnGameIsOverExceptionIsThrown)
 {
   EXPECT_CALL(*player1, playTurn(Field(&Turn::numberOfLives, 3)))
     .WillOnce(PlayerPlayCard(2));
@@ -429,4 +428,54 @@ TEST_F(
     game->turn();
 
   EXPECT_THROW(game->turn(), GameIsOverException);
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenPlayers1OpenedColorStackWhenPlayer2PlaysCardOfOtherColorWithNextValueThenLifeIsLost)
+{
+  EXPECT_CALL(*player1, playTurn(::testing::_)).WillOnce(PlayerPlayCard(0));
+  ON_CALL(*player2, playTurn(::testing::_)).WillByDefault(PlayerPlayCard(5));
+  EXPECT_CALL(
+    *player1,
+    playTurn(::testing::AllOf(
+      Field(&Turn::numberOfHints, 8),
+      Field(&Turn::numberOfLives, 2),
+      Field(&Turn::playerHand,
+            ElementsAre(
+              deck[2].id, deck[4].id, deck[6].id, deck[8].id, deck[10].id)),
+      Field(&Turn::otherPlayers,
+            ElementsAre(std::pair<PlayerId, Cards>{
+              PLAYER_2_ID, Cards{ deck[1], deck[3], deck[7], deck[9] } })),
+      Field(&Turn::graveyard, Cards{ deck[5] }),
+      Field(&Turn::stacks,
+            ElementsAre(std::pair<Color, Value>{ Color::BLUE, Value::ONE })))));
+
+  for (int i = 0; i < 3; ++i)
+    game->turn();
+}
+
+TEST_F(
+  TwoPlayerGameTests,
+  GivenPlayers1OpenedColorStackWhenPlayer2PlaysCardOfSameColorWithNextValueThenCardIsAddedToStack)
+{
+  EXPECT_CALL(*player1, playTurn(::testing::_)).WillOnce(PlayerPlayCard(0));
+  ON_CALL(*player2, playTurn(::testing::_)).WillByDefault(PlayerPlayCard(9));
+  EXPECT_CALL(
+    *player1,
+    playTurn(::testing::AllOf(
+      Field(&Turn::numberOfHints, 8),
+      Field(&Turn::numberOfLives, 3),
+      Field(&Turn::playerHand,
+            ElementsAre(
+              deck[2].id, deck[4].id, deck[6].id, deck[8].id, deck[10].id)),
+      Field(&Turn::otherPlayers,
+            ElementsAre(std::pair<PlayerId, Cards>{
+              PLAYER_2_ID, Cards{ deck[1], deck[3], deck[5], deck[7] } })),
+      Field(&Turn::graveyard, Cards{}),
+      Field(&Turn::stacks,
+            ElementsAre(std::pair<Color, Value>{ Color::BLUE, Value::TWO })))));
+
+  for (int i = 0; i < 3; ++i)
+    game->turn();
 }

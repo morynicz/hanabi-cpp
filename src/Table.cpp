@@ -40,6 +40,11 @@ void Table::playCard(const Card& card)
   {
     stacks.insert_or_assign(card.color, card.value);
   }
+  else if (isStackOpened(card.color) and
+           areAdjacentAscending(stacks[card.color], card.value))
+  {
+    stacks.insert_or_assign(card.color, card.value);
+  }
   else
   {
     graveyard.push_back(card);
@@ -48,5 +53,9 @@ void Table::playCard(const Card& card)
 }
 bool Table::isOpeningNewStack(const Card& card)
 {
-  return card.value == Value::ONE and stacks.find(card.color) == stacks.end();
+  return card.value == Value::ONE and not isStackOpened(card.color);
+}
+bool Table::isStackOpened(const Color color)
+{
+  return stacks.find(color) != stacks.end();
 }
