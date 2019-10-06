@@ -20,7 +20,9 @@ class Table
   unsigned char numberOfHints;
   unsigned char numberOfLives;
   bool isOpeningNewStack(const Card&);
+  bool isAddingCardToStack(const Card&);
   bool isStackOpened(const Color);
+  void restoreHint();
 
 public:
   Table(const Cards& deck)
