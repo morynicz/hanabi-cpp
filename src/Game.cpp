@@ -58,7 +58,7 @@ Game::Game(const Players& players, std::list<Card> deck)
   : players(players)
   , table{ deck }
   , hands()
-  , currentPlayer(players.cbegin())
+  , currentPlayer(Game::players.cbegin())
 {
   validate();
   play();
@@ -74,7 +74,6 @@ void Game::validate()
 
 void Game::play()
 {
-  currentPlayer = players.cbegin(); // this is some weird stuff
   for (auto player : players)
   {
     hands.insert({ player->getId(), {} });
