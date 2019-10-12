@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Card.hpp"
+#include <array>
 #include <functional>
 #include <list>
 #include <map>
@@ -24,6 +25,7 @@ class Table
   bool isAddingCardToStack(const Card&);
   bool isStackOpened(const Color);
   void restoreHint();
+  void putToGraveyard(const Card&);
 
 public:
   Table(const Cards& deck)
@@ -32,14 +34,30 @@ public:
     , graveyard{}
     , numberOfHints(MAX_HINTS)
     , numberOfLives(MAX_LIVES)
-    , winnableCondition{
-      { Color::YELLOW,
-        { { Value::ONE, 1 }, { Value::TWO, 2 }, { Value::THREE, 2 } } },
-      { Color::RED,
-        { { Value::ONE, 1 }, { Value::TWO, 2 }, { Value::THREE, 2 } } },
-      { Color::BLUE,
-        { { Value::ONE, 1 }, { Value::TWO, 2 }, { Value::THREE, 2 } } }
-    }
+    , winnableCondition{ { Color::YELLOW,
+                           { { Value::ONE, 3 },
+                             { Value::TWO, 2 },
+                             { Value::THREE, 2 },
+                             { Value::FOUR, 2 },
+                             { Value::FIVE, 1 } } },
+                         { Color::RED,
+                           { { Value::ONE, 3 },
+                             { Value::TWO, 2 },
+                             { Value::THREE, 2 },
+                             { Value::FOUR, 2 },
+                             { Value::FIVE, 1 } } },
+                         { Color::BLUE,
+                           { { Value::ONE, 3 },
+                             { Value::TWO, 2 },
+                             { Value::THREE, 2 },
+                             { Value::FOUR, 2 },
+                             { Value::FIVE, 1 } } },
+                         { Color::WHITE,
+                           { { Value::ONE, 3 },
+                             { Value::TWO, 2 },
+                             { Value::THREE, 2 },
+                             { Value::FOUR, 2 },
+                             { Value::FIVE, 1 } } } }
   {
   }
 

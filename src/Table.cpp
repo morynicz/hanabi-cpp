@@ -2,8 +2,7 @@
 
 void Table::discard(const Card& card)
 {
-  graveyard.push_back(card);
-  winnableCondition.at(card.color).at(card.value)--;
+  putToGraveyard(card);
   restoreHint();
 }
 
@@ -55,7 +54,7 @@ void Table::playCard(const Card& card)
   }
   else
   {
-    graveyard.push_back(card);
+    putToGraveyard(card);
     --numberOfLives;
   }
 }
@@ -94,4 +93,10 @@ bool Table::isWinnable() const
                             return numberOfLeft.second <= 0;
                           });
                       });
+}
+
+void Table::putToGraveyard(const Card& card)
+{
+  graveyard.push_back(card);
+  winnableCondition.at(card.color).at(card.value)--;
 }

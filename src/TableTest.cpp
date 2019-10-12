@@ -49,13 +49,10 @@ class YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests
 {
 public:
   YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests()
-    : table({
-        { 0, Color::YELLOW, Value::ONE },
-        { 1, Color::YELLOW, Value::ONE },
-        { 2, Color::YELLOW, Value::TWO },
-        { 3, Color::YELLOW, Value::FOUR },
-        { 4, Color::YELLOW, Value::FIVE },
-      })
+    : table({ { 0, Color::YELLOW, Value::ONE },
+              { 1, Color::YELLOW, Value::ONE },
+              { 2, Color::YELLOW, Value::TWO },
+              { 3, Color::YELLOW, Value::FOUR } })
   {
     table.playCard({ 5, Color::YELLOW, Value::ONE });
     table.playCard({ 6, Color::YELLOW, Value::TWO });
@@ -78,4 +75,16 @@ TEST_F(YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests,
   EXPECT_TRUE(table.isWinnable());
 }
 
-// TEST_F()
+TEST_F(YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests,
+       WhenYellowFivePlayedThenIsWinnableIsFalse)
+{
+  table.playCard({ 8, Color::YELLOW, Value::FIVE });
+  EXPECT_FALSE(table.isWinnable());
+}
+
+TEST(FiveDiscardTest, WhenFiveIsDiscardedThenGameIsNotWinnable)
+{
+  Table table{ {} };
+  table.discard({ 0, Color::WHITE, Value::FIVE });
+  EXPECT_FALSE(table.isWinnable());
+}
