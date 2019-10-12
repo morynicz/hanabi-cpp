@@ -3,6 +3,7 @@
 void Table::discard(const Card& card)
 {
   graveyard.push_back(card);
+  winnableCondition.at(card.color).at(card.value)--;
   restoreHint();
 }
 
@@ -79,4 +80,18 @@ void Table::restoreHint()
 {
   if (numberOfHints < MAX_HINTS)
     ++numberOfHints;
+}
+
+bool Table::isWinnable() const
+{
+  return std::none_of(winnableCondition.begin(),
+                      winnableCondition.end(),
+                      [](const std::pair<Color, std::map<Value, int>>& values) {
+                        return any_of(
+                          values.second.begin(),
+                          values.second.end(),
+                          [](const std::pair<Value, int>& numberOfLeft) {
+                            return numberOfLeft.second <= 0;
+                          });
+                      });
 }

@@ -19,6 +19,7 @@ class Table
   Cards graveyard;
   unsigned char numberOfHints;
   unsigned char numberOfLives;
+  std::map<Color, std::map<Value, int>> winnableCondition;
   bool isOpeningNewStack(const Card&);
   bool isAddingCardToStack(const Card&);
   bool isStackOpened(const Color);
@@ -31,8 +32,17 @@ public:
     , graveyard{}
     , numberOfHints(MAX_HINTS)
     , numberOfLives(MAX_LIVES)
+    , winnableCondition{
+      { Color::YELLOW,
+        { { Value::ONE, 1 }, { Value::TWO, 2 }, { Value::THREE, 2 } } },
+      { Color::RED,
+        { { Value::ONE, 1 }, { Value::TWO, 2 }, { Value::THREE, 2 } } },
+      { Color::BLUE,
+        { { Value::ONE, 1 }, { Value::TWO, 2 }, { Value::THREE, 2 } } }
+    }
   {
   }
+
   Cards getGraveyard() const { return graveyard; }
   std::map<Color, Value> getStacks() const { return stacks; }
   unsigned char getNumberOfLives() const { return numberOfLives; }
@@ -47,4 +57,5 @@ public:
   void playCard(const Card&);
   void discard(const Card& card);
   bool isOver() const;
+  bool isWinnable() const;
 };
