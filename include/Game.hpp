@@ -11,18 +11,22 @@
 
 class NotEnoughPlayersException : public std::exception
 {
+  const char* what() const noexcept override { return "Not enough players"; }
 };
 
 class TooManyPlayersException : public std::exception
 {
+  const char* what() const noexcept override { return "Too many players"; }
 };
 
 class NoSuchPlayerException : public std::exception
 {
+  const char* what() const noexcept override { return "No such player"; }
 };
 
 class GameIsOverException : public std::exception
 {
+  const char* what() const noexcept override { return "Game is over"; }
 };
 
 using Players = std::list<std::shared_ptr<Player>>;
@@ -45,11 +49,14 @@ class Game
   Card getCard(PlayerId, CardId);
   void advancePlayer(Players::const_iterator& playersIt);
   std::map<PlayerId, Cards> getOtherPlayerHands(const PlayerId) const;
+  bool isEndGame() const;
+  bool isGameOver() const;
 
   Players players;
   Table table;
   std::map<PlayerId, Hand> hands;
   Players::const_iterator currentPlayer;
+  int turnsLeftCounter;
 
 public:
   Game(const Game&) = delete;

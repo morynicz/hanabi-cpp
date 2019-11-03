@@ -66,7 +66,7 @@ public:
   unsigned char getNumberOfLives() const { return numberOfLives; }
   unsigned char getNumberOfHints() const { return numberOfHints; }
   Card drawCard();
-  inline bool isDeckEmpty() { return deck.empty(); }
+  inline bool isDeckEmpty() const { return deck.empty(); }
   virtual std::function<bool(const Card&)> getColorPredicate(
     const Color color) const;
   virtual std::function<bool(const Card&)> getValuePredicate(
