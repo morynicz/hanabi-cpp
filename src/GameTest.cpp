@@ -499,3 +499,22 @@ TEST_F(
 
   EXPECT_THROW(game->turn(), GameIsOverException);
 }
+
+TEST_F(TwoPlayerGameTests,
+       GivenTheGameHasFinishedWithOneRedAndTwoBlueOnTableThenScoreIsThree)
+{
+  {
+    ::testing::InSequence seq;
+    EXPECT_CALL(*player1, playTurn(::testing::_))
+      .WillOnce(PlayerDiscardCard(4));
+    EXPECT_CALL(*player2, playTurn(::testing::_)).WillOnce(PlayerPlayCard(1));
+    EXPECT_CALL(*player1, playTurn(::testing::_)).WillOnce(PlayerPlayCard(0));
+    EXPECT_CALL(*player2, playTurn(::testing::_))
+      .WillRepeatedly(PlayerPlayCard(9));
+  }
+
+  for (int i = 0; i < 3; ++i)
+    game->turn();
+
+  EXPECT_EQ(game->getScore(), 2);
+}

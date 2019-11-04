@@ -76,4 +76,5 @@ public:
   void discard(const Card& card);
   bool isOver() const;
   bool isWinnable() const;
+  int getScore() const;
 };

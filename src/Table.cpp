@@ -100,3 +100,13 @@ void Table::putToGraveyard(const Card& card)
   graveyard.push_back(card);
   winnableCondition.at(card.color).at(card.value)--;
 }
+
+int Table::getScore() const
+{
+  int score = 0;
+  for (auto stack : stacks)
+  {
+    score += static_cast<int>(stack.second);
+  }
+  return score;
+}

@@ -63,4 +63,5 @@ public:
   Game(Game&&) = delete;
   Game(const Players& players, Cards);
   void turn();
+  int getScore() const;
 };

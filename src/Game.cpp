@@ -183,3 +183,8 @@ void Game::discard(PlayerId currentPlayerId, CardId cardId)
   table.discard(card);
   drawCard(currentPlayerId);
 }
+
+int Game::getScore() const
+{
+  return table.getScore();
+}
