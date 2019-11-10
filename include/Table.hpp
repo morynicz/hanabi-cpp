@@ -8,6 +8,7 @@
 
 constexpr unsigned char MAX_LIVES = 3;
 constexpr unsigned char MAX_HINTS = 8;
+constexpr unsigned char NUMBER_OF_COLORS = 5;
 
 class NoMoreHintsAvailableException : public std::exception
 {
@@ -24,6 +25,7 @@ class Table
   bool isOpeningNewStack(const Card&);
   bool isAddingCardToStack(const Card&);
   bool isStackOpened(const Color);
+  bool areAllStacksFinished() const;
   void restoreHint();
   void putToGraveyard(const Card&);
 

@@ -8,7 +8,15 @@ void Table::discard(const Card& card)
 
 bool Table::isOver() const
 {
-  return numberOfLives <= 0;
+  return numberOfLives <= 0 or areAllStacksFinished();
+}
+
+bool Table::areAllStacksFinished() const
+{
+  return (stacks.size() == NUMBER_OF_COLORS and
+          std::all_of(stacks.begin(), stacks.end(), [](const auto& top) {
+            return top.second == Value::FIVE;
+          }));
 }
 
 Card Table::drawCard()

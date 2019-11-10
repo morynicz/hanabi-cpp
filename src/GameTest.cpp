@@ -518,3 +518,87 @@ TEST_F(TwoPlayerGameTests,
 
   EXPECT_EQ(game->getScore(), 2);
 }
+
+class VerySimplePlayer : public Player
+{
+  const PlayerId id;
+
+public:
+  VerySimplePlayer(const PlayerId& id)
+    : id(id)
+  {
+  }
+  PlayerId getId() const { return id; };
+  void playTurn(Turn& turn)
+  {
+    if (not turn.playerHand.empty())
+      turn.playCard(turn.playerHand.front());
+    else
+    {
+      turn.giveHint(turn.otherPlayers.begin()->first,
+                    turn.otherPlayers.begin()->second.front().color);
+    }
+  };
+  void takeHint(std::list<CardId>, Color){};
+  void takeHint(std::list<CardId>, Value){};
+};
+
+struct TwoPlayerFullGameTests : public ::testing::Test
+{
+  TwoPlayerFullGameTests()
+    : deck({ { 1, Color::BLUE, Value::ONE },
+             { 2, Color::BLUE, Value::TWO },
+             { 3, Color::BLUE, Value::THREE },
+             { 4, Color::BLUE, Value::FOUR },
+             { 5, Color::BLUE, Value::FIVE },
+             { 6, Color::RED, Value::ONE },
+             { 7, Color::RED, Value::TWO },
+             { 8, Color::RED, Value::THREE },
+             { 9, Color::RED, Value::FOUR },
+             { 10, Color::RED, Value::FIVE },
+             { 11, Color::WHITE, Value::ONE },
+             { 12, Color::WHITE, Value::TWO },
+             { 13, Color::WHITE, Value::THREE },
+             { 14, Color::WHITE, Value::FOUR },
+             { 15, Color::WHITE, Value::FIVE },
+             { 16, Color::YELLOW, Value::ONE },
+             { 17, Color::YELLOW, Value::TWO },
+             { 18, Color::YELLOW, Value::THREE },
+             { 19, Color::YELLOW, Value::FOUR },
+             { 20, Color::YELLOW, Value::FIVE },
+             { 21, Color::GREEN, Value::ONE },
+             { 22, Color::GREEN, Value::TWO },
+             { 23, Color::GREEN, Value::THREE },
+             { 24, Color::GREEN, Value::FOUR },
+             { 25, Color::GREEN, Value::FIVE },
+             { 26, Color::GREEN, Value::ONE },
+             { 27, Color::GREEN, Value::ONE },
+             { 28, Color::BLUE, Value::ONE },
+             { 29, Color::BLUE, Value::ONE },
+             { 30, Color::WHITE, Value::ONE },
+             { 31, Color::WHITE, Value::ONE },
+             { 32, Color::RED, Value::ONE } })
+    , players{ player1, player2 }
+    , game()
+  {
+    game = std::make_unique<Game>(players,
+                                  std::list<Card>(deck.begin(), deck.end()));
+  }
+
+  std::vector<Card> deck;
+  std::shared_ptr<Player> player1 = std::make_shared<VerySimplePlayer>(1);
+  std::shared_ptr<Player> player2 = std::make_shared<VerySimplePlayer>(2);
+  Players players;
+  std::unique_ptr<Game> game;
+};
+
+TEST_F(TwoPlayerFullGameTests,
+       WhenGameReachesEndThenGameHasScore25AndGameIsOverIsThrown)
+{
+  for (auto i = 0; i < 25; ++i)
+  {
+    game->turn();
+  }
+  EXPECT_EQ(game->getScore(), 25);
+  EXPECT_THROW(game->turn(), GameIsOverException);
+}
