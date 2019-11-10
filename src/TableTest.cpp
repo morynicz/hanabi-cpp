@@ -85,6 +85,6 @@ TEST_F(YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests,
 TEST(FiveDiscardTest, WhenFiveIsDiscardedThenGameIsNotWinnable)
 {
   Table table{ {} };
-  table.discard({ 0, Color::WHITE, Value::FIVE });
+  table.discard({ 0, Color::GREEN, Value::FIVE });
   EXPECT_FALSE(table.isWinnable());
 }
