@@ -32,7 +32,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 
-
+add_subdirectory(pybind11)
 
 include_directories(include)
 
@@ -41,6 +41,9 @@ set_property(TARGET test_game PROPERTY CXX_STANDARD 17)
 
 target_link_libraries(test_game gmock_main gtest gmock ${CMAKE_THREAD_LIBS_INIT})
 
+add_library(hanabi src/Game.cpp src/Hand.cpp src/Table.cpp)
+pybind11_add_module(hanabi_py SHARED src/PyGame.cpp src/Game.cpp src/Hand.cpp src/Table.cpp)
+set_property(TARGET hanabi PROPERTY CXX_STANDARD 17)
 enable_testing()
 
 add_test(game test_game)

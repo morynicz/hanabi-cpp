@@ -14,7 +14,7 @@ std::list<CardId> transformToCardIds(const std::map<PlayerId, Cards>& hands,
   return cardIds;
 }
 
-Game::Game(const Players& players, std::list<Card> deck)
+Game::Game(const Players& players, const std::list<Card>& deck)
   : players(players)
   , table{ deck }
   , hands()

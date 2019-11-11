@@ -61,7 +61,7 @@ class Game
 public:
   Game(const Game&) = delete;
   Game(Game&&) = delete;
-  Game(const Players& players, Cards);
+  Game(const Players& players, const Cards&);
   void turn();
   int getScore() const;
 };
