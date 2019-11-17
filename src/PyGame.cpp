@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "pybind11/functional.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 namespace py = pybind11;
@@ -32,7 +33,9 @@ PYBIND11_MODULE(hanabi_py, m)
 {
   m.doc() = "hanabi-cpp wrapper for python";
   py::class_<Game>(m, "Game")
-    .def(py::init<const Players&, const Cards&>())
+    .def(py::init<const Players&, const Cards&>(),
+         py::arg("players"),
+         py::arg("cards"))
     .def("turn", &Game::turn)
     .def("getScore", &Game::getScore);
 
@@ -42,31 +45,50 @@ PYBIND11_MODULE(hanabi_py, m)
     .def("playTurn", &Player::playTurn, "Play turn", py::arg("turn"))
     .def("takeHint",
          py::overload_cast<std::list<CardId>, Color>(&Player::takeHint),
-         "take color hint")
+         "take color hint",
+         py::arg("cards"),
+         py::arg("color"))
     .def("takeHint",
          py::overload_cast<std::list<CardId>, Value>(&Player::takeHint),
-         "take value hint");
+         "take value hint",
+         py::arg("cards"),
+         py::arg("value"));
 
   py::class_<Card>(m, "Card")
+    .def(py::init<>())
     .def_readwrite("color", &Card::color)
     .def_readwrite("value", &Card::value)
     .def_readwrite("id", &Card::id);
 
   py::enum_<Value>(m, "Value")
-    .value("Unknown", Value::UNKNOWN)
-    .value("One", Value::ONE)
-    .value("Two", Value::TWO)
-    .value("Three", Value::THREE)
-    .value("Four", Value::FOUR)
-    .value("Five", Value::FIVE)
+    .value("UNKNOWN", Value::UNKNOWN)
+    .value("ONE", Value::ONE)
+    .value("TWO", Value::TWO)
+    .value("THREE", Value::THREE)
+    .value("FOUR", Value::FOUR)
+    .value("FIVE", Value::FIVE)
     .export_values();
 
   py::enum_<Color>(m, "Color")
-    .value("Red", Color::RED)
-    .value("Green", Color::GREEN)
-    .value("Blue", Color::BLUE)
-    .value("Yellow", Color::YELLOW)
-    .value("White", Color::WHITE)
-    .value("Rainbow", Color::RAINBOW)
+    .value("RED", Color::RED)
+    .value("GREEN", Color::GREEN)
+    .value("BLUE", Color::BLUE)
+    .value("YELLOW", Color::YELLOW)
+    .value("WHITE", Color::WHITE)
+    .value("RAINBOW", Color::RAINBOW)
     .export_values();
+
+  py::class_<Turn>(m, "Turn")
+    .def("giveHint",
+         py::overload_cast<PlayerId, Color>(&Turn::giveHint),
+         "give color hint",
+         py::arg("playerId"),
+         py::arg("Color"))
+    .def("giveHint",
+         py::overload_cast<PlayerId, Value>(&Turn::giveHint),
+         "give value hint",
+         py::arg("playerId"),
+         py::arg("Value"))
+    .def("playCard", &Turn::playCard, py::arg("cardId"))
+    .def("discard", &Turn::discard, py::arg("cardId"));
 }
