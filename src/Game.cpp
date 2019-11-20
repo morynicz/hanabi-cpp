@@ -1,8 +1,7 @@
 #include "Game.hpp"
-#include "TurnImpl.hpp"
 #include <algorithm>
 #include <functional>
-#include <iostream>
+
 std::list<CardId> transformToCardIds(const std::map<PlayerId, Cards>& hands,
                                      PlayerId playerId)
 {
@@ -110,7 +109,7 @@ void Game::runPlayerTurn(Player& player)
 {
   auto playerId = player.getId();
   auto otherPlayersHands = getOtherPlayerHands(playerId);
-  TurnImpl turn{
+  Turn turn{
     hands.at(playerId).getIds(),
     otherPlayersHands,
     table.getGraveyard(),
@@ -124,7 +123,6 @@ void Game::runPlayerTurn(Player& player)
     std::bind(&Game::playCard, this, playerId, std::placeholders::_1),
     std::bind(&Game::discard, this, playerId, std::placeholders::_1)
   };
-  std::cout << "push" << std::endl;
   player.playTurn(turn);
 }
 

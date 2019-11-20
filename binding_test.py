@@ -11,7 +11,7 @@ class PyPlayer(h.Player):
         return self.id
 
     def playTurn(self, turn):
-        turn.play_card(turn.player_hand[0])
+        turn.playCard(turn.playerHand[0])
 
     def takeHint(self, ids, arg):
         pass

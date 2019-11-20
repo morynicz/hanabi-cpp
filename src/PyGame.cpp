@@ -90,5 +90,11 @@ PYBIND11_MODULE(hanabi_py, m)
          py::arg("playerId"),
          py::arg("Value"))
     .def("playCard", &Turn::playCard, py::arg("cardId"))
-    .def("discard", &Turn::discard, py::arg("cardId"));
+    .def("discard", &Turn::discard, py::arg("cardId"))
+    .def_readonly("playerHand", &Turn::playerHand)
+    .def_readonly("otherPlayers", &Turn::otherPlayers)
+    .def_readonly("graveyard", &Turn::graveyard)
+    .def_readonly("stacks", &Turn::stacks)
+    .def_readonly("numberOfHinst", &Turn::numberOfHints)
+    .def_readonly("numberOfLives", &Turn::numberOfLives);
 }
