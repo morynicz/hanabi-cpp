@@ -4,7 +4,6 @@ project(AceOfSpace CXX)
 set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-Wall -Wextra -pedantic -Werror -Wunused)
 
-find_package(Boost REQUIRED program_options system)
 find_package(Threads)
 
 # Download and unpack googletest at configure time
@@ -31,6 +30,8 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
+
+set(PYBIND11_CPP_STANDARD -std=c++17)
 
 add_subdirectory(pybind11)
 
