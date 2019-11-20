@@ -13,7 +13,7 @@ class FirstCardInHandPlayingPlayer(h.Player):
     def playTurn(self, turn):
         turn.playCard(turn.playerHand[0])
 
-    def takeHint(self, ids, arg):
+    def takeHint(self, playerId, ids, arg):
         pass
 
 
@@ -71,26 +71,29 @@ class MyTestCase(unittest.TestCase):
             g.turn()
         self.assertEqual(25, g.getScore())
 
+PLAYER_1_ID = 1
+PLAYER_2_ID = 2
+
 class Hinter(h.Player):
     def __init__(self, giveHint):
         self.hintTaken = False
         h.Player.__init__(self)
-        self.id = 1
+        self.id = PLAYER_1_ID
         self.giveHint = giveHint
 
     def getId(self):
         return self.id
 
     def playTurn(self, turn):
-        turn.giveHint(2, self.giveHint(turn.otherPlayers[2][0]))
+        turn.giveHint(PLAYER_2_ID, self.giveHint(turn.otherPlayers[PLAYER_2_ID][0]))
 
-    def takeHint(self, ids, arg):
+    def takeHint(self, playerId, ids, arg):
         pass
 
 class HintTaker(h.Player):
     def __init__(self):
         h.Player.__init__(self)
-        self.id = 2
+        self.id = PLAYER_2_ID
 
     def getId(self):
         return self.id
@@ -98,9 +101,10 @@ class HintTaker(h.Player):
     def playTurn(self, turn):
         self.hints = turn.numberOfHints
 
-    def takeHint(self, ids, arg):
+    def takeHint(self, playerId, ids, arg):
         self.ids = ids
         self.arg = arg
+        self.playerId = playerId
 
 
 class HintTakingTests(MyTestCase):
@@ -112,11 +116,13 @@ class HintTakingTests(MyTestCase):
             return card.color
         p1 = Hinter(giveHint)
         p2 = HintTaker()
+        blue_card_ids = [2, 4]
 
         g = h.Game([p1, p2], self.cards)
         g.turn()
-        self.assertEqual(p2.ids, [2, 4])
+        self.assertEqual(p2.ids, blue_card_ids)
         self.assertEqual(p2.arg, h.Color.BLUE)
+        self.assertEqual(p2.playerId, PLAYER_2_ID)
 
     def test_value_hint_from_p1_is_sent_to_p2(self):
         def giveHint(card):
@@ -126,8 +132,10 @@ class HintTakingTests(MyTestCase):
 
         g = h.Game([p1, p2], self.cards)
         g.turn()
-        self.assertEqual(p2.ids, [2])
+        value_2_card_ids = [2]
+        self.assertEqual(p2.ids, value_2_card_ids)
         self.assertEqual(p2.arg, h.Value.TWO)
+        self.assertEqual(p2.playerId, PLAYER_2_ID)
 
 
     def test_after_using_hint_p2_gets_turn_with_7_hints(self):

@@ -1,7 +1,7 @@
 #include "Game.hpp"
 #include "Player.hpp"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include <memory>
 
 using ::testing::ElementsAre;
@@ -112,18 +112,18 @@ std::ostream& operator<<(std::ostream& str, const Turn& turn)
 class MockPlayer : public Player
 {
 public:
-  MOCK_CONST_METHOD0(getId, PlayerId());
-  MOCK_METHOD1(playTurn, void(Turn&));
-  MOCK_METHOD2(takeHint, void(std::list<CardId>, Color));
-  MOCK_METHOD2(takeHint, void(std::list<CardId>, Value));
+  MOCK_METHOD(PlayerId, getId, (), (const, override));
+  MOCK_METHOD(void, playTurn, (Turn&), (override));
+  MOCK_METHOD(void, takeHint, (PlayerId, std::list<CardId>, Color), (override));
+  MOCK_METHOD(void, takeHint, (PlayerId, std::list<CardId>, Value), (override));
 };
 
 class DummyPlayer : public Player
 {
   PlayerId getId() const { return 0; }
   void playTurn(Turn&) {}
-  void takeHint(std::list<CardId>, Color){};
-  void takeHint(std::list<CardId>, Value){};
+  void takeHint(PlayerId, std::list<CardId>, Color){};
+  void takeHint(PlayerId, std::list<CardId>, Value){};
 };
 
 constexpr PlayerId UNKNOWN_PLAYER_ID = 333;
@@ -213,7 +213,8 @@ TEST_F(
 {
   EXPECT_CALL(*player1, playTurn(::testing::_))
     .WillOnce(PlayerGiveHint(PLAYER_2_ID, Color::RED));
-  EXPECT_CALL(*player2, takeHint(std::list<CardId>{ 1 }, Color::RED));
+  EXPECT_CALL(*player2,
+              takeHint(PLAYER_2_ID, std::list<CardId>{ 1 }, Color::RED));
   game->turn();
   game->turn();
 }
@@ -244,7 +245,8 @@ TEST_F(
 {
   EXPECT_CALL(*player1, playTurn(::testing::_))
     .WillOnce(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
-  EXPECT_CALL(*player2, takeHint(std::list<CardId>{ 1, 3, 7 }, Value::ONE));
+  EXPECT_CALL(*player2,
+              takeHint(PLAYER_2_ID, std::list<CardId>{ 1, 3, 7 }, Value::ONE));
   game->turn();
   game->turn();
 }
@@ -528,8 +530,8 @@ public:
     : id(id)
   {
   }
-  PlayerId getId() const { return id; };
-  void playTurn(Turn& turn)
+  PlayerId getId() const override { return id; };
+  void playTurn(Turn& turn) override
   {
     if (not turn.playerHand.empty())
       turn.playCard(turn.playerHand.front());
@@ -539,8 +541,8 @@ public:
                     turn.otherPlayers.begin()->second.front().color);
     }
   };
-  void takeHint(std::list<CardId>, Color){};
-  void takeHint(std::list<CardId>, Value){};
+  void takeHint(PlayerId, std::list<CardId>, Color) override{};
+  void takeHint(PlayerId, std::list<CardId>, Value) override{};
 };
 
 struct TwoPlayerFullGameTests : public ::testing::Test

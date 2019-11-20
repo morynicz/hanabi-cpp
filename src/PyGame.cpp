@@ -61,14 +61,14 @@ class PyPlayer : public Player
     PYBIND11_OVERLOAD_PURE(void, Player, playTurn, turn);
   }
 
-  void takeHint(std::list<CardId> ids, Color color) override
+  void takeHint(PlayerId playerId, std::list<CardId> ids, Color color) override
   {
-    PYBIND11_OVERLOAD_PURE(void, Player, takeHint, ids, color);
+    PYBIND11_OVERLOAD_PURE(void, Player, takeHint, playerId, ids, color);
   }
 
-  void takeHint(std::list<CardId> ids, Value value) override
+  void takeHint(PlayerId playerId, std::list<CardId> ids, Value value) override
   {
-    PYBIND11_OVERLOAD_PURE(void, Player, takeHint, ids, value);
+    PYBIND11_OVERLOAD_PURE(void, Player, takeHint, playerId, ids, value);
   }
 };
 
@@ -86,16 +86,20 @@ PYBIND11_MODULE(hanabi_py, m)
     .def(py::init<>())
     .def("getId", &Player::getId, "Get id")
     .def("playTurn", &Player::playTurn, "Play turn", py::arg("turn"))
-    .def("takeHint",
-         py::overload_cast<std::list<CardId>, Color>(&Player::takeHint),
-         "take color hint",
-         py::arg("cards"),
-         py::arg("color"))
-    .def("takeHint",
-         py::overload_cast<std::list<CardId>, Value>(&Player::takeHint),
-         "take value hint",
-         py::arg("cards"),
-         py::arg("value"));
+    .def(
+      "takeHint",
+      py::overload_cast<PlayerId, std::list<CardId>, Color>(&Player::takeHint),
+      "player got color hint",
+      py::arg("playerId"),
+      py::arg("cards"),
+      py::arg("color"))
+    .def(
+      "takeHint",
+      py::overload_cast<PlayerId, std::list<CardId>, Value>(&Player::takeHint),
+      "player got value hint",
+      py::arg("playerId"),
+      py::arg("cards"),
+      py::arg("value"));
 
   py::class_<Card>(m, "Card")
     .def(py::init<>())

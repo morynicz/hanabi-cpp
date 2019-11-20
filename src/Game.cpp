@@ -129,13 +129,13 @@ void Game::runPlayerTurn(Player& player)
 void Game::passColorHint(PlayerId playerId, Color color)
 {
   auto [player, ids] = prepareHint(playerId, table.getColorPredicate(color));
-  (*player)->takeHint(ids, color);
+  (*player)->takeHint(playerId, ids, color);
 }
 
 void Game::passValueHint(PlayerId playerId, Value value)
 {
   auto [player, ids] = prepareHint(playerId, table.getValuePredicate(value));
-  (*player)->takeHint(ids, value);
+  (*player)->takeHint(playerId, ids, value);
 }
 
 std::tuple<Players::const_iterator, std::list<CardId>> Game::prepareHint(
