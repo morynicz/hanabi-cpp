@@ -2,16 +2,17 @@
 
 #include "Card.hpp"
 #include "Ids.hpp"
+#include <functional>
 #include <list>
 #include <map>
-#include <functional>
 
 class Turn
 {
-    std::function<void(PlayerId, Color)> giveColorHintImpl;
+  std::function<void(PlayerId, Color)> giveColorHintImpl;
   std::function<void(PlayerId, Value)> giveValueHintImpl;
   std::function<void(CardId)> playCardImpl;
   std::function<void(CardId)> discardCardImpl;
+
 public:
   Turn(const std::list<CardId>& playerHand,
        const std::map<PlayerId, Cards>& otherPlayers,
@@ -19,11 +20,11 @@ public:
        const std::map<Color, Value>& stacks,
        const unsigned char numberOfHints,
        const unsigned char numberOfLives,
-                  std::function<void(PlayerId, Color)> giveColorHintImpl,
-           std::function<void(PlayerId, Value)> giveValueHintImpl,
-           std::function<void(CardId)> playCardImpl,
-           std::function<void(CardId)> discardCardImpl)
-        : giveColorHintImpl(giveColorHintImpl)
+       std::function<void(PlayerId, Color)> giveColorHintImpl,
+       std::function<void(PlayerId, Value)> giveValueHintImpl,
+       std::function<void(CardId)> playCardImpl,
+       std::function<void(CardId)> discardCardImpl)
+    : giveColorHintImpl(giveColorHintImpl)
     , giveValueHintImpl(giveValueHintImpl)
     , playCardImpl(playCardImpl)
     , discardCardImpl(discardCardImpl)

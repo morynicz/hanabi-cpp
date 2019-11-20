@@ -2,7 +2,7 @@ import unittest
 import hanabi_py as h
 
 
-class PyPlayer(h.Player):
+class FirstCardInHandPlayingPlayer(h.Player):
     def __init__(self, id):
         h.Player.__init__(self)
         self.id = id
@@ -26,10 +26,8 @@ def make_card(id, color, value):
 
 
 class MyTestCase(unittest.TestCase):
-    def test_simple_game(self):
-        p1 = PyPlayer(1)
-        p2 = PyPlayer(2)
-        cards = [
+    def setUp(self) -> None:
+        self.cards = [
             make_card(1, h.Color.BLUE, h.Value.ONE),
             make_card(2, h.Color.BLUE, h.Value.TWO),
             make_card(3, h.Color.BLUE, h.Value.THREE),
@@ -63,11 +61,85 @@ class MyTestCase(unittest.TestCase):
             make_card(31, h.Color.WHITE, h.Value.ONE),
             make_card(32, h.Color.RED, h.Value.ONE)
         ]
-        g = h.Game([p1, p2], cards)
+
+    def test_simple_game(self):
+        p1 = FirstCardInHandPlayingPlayer(1)
+        p2 = FirstCardInHandPlayingPlayer(2)
+
+        g = h.Game([p1, p2], self.cards)
         for _ in range(25):
             g.turn()
         self.assertEqual(25, g.getScore())
 
+class Hinter(h.Player):
+    def __init__(self, giveHint):
+        self.hintTaken = False
+        h.Player.__init__(self)
+        self.id = 1
+        self.giveHint = giveHint
+
+    def getId(self):
+        return self.id
+
+    def playTurn(self, turn):
+        turn.giveHint(2, self.giveHint(turn.otherPlayers[2][0]))
+
+    def takeHint(self, ids, arg):
+        pass
+
+class HintTaker(h.Player):
+    def __init__(self):
+        h.Player.__init__(self)
+        self.id = 2
+
+    def getId(self):
+        return self.id
+
+    def playTurn(self, turn):
+        self.hints = turn.numberOfHints
+
+    def takeHint(self, ids, arg):
+        self.ids = ids
+        self.arg = arg
+
+
+class HintTakingTests(MyTestCase):
+    def setUp(self) -> None:
+        super(HintTakingTests, self).setUp()
+
+    def test_color_hint_from_p1_is_sent_to_p2(self):
+        def giveHint(card):
+            return card.color
+        p1 = Hinter(giveHint)
+        p2 = HintTaker()
+
+        g = h.Game([p1, p2], self.cards)
+        g.turn()
+        self.assertEqual(p2.ids, [2, 4])
+        self.assertEqual(p2.arg, h.Color.BLUE)
+
+    def test_value_hint_from_p1_is_sent_to_p2(self):
+        def giveHint(card):
+            return card.value
+        p1 = Hinter(giveHint)
+        p2 = HintTaker()
+
+        g = h.Game([p1, p2], self.cards)
+        g.turn()
+        self.assertEqual(p2.ids, [2])
+        self.assertEqual(p2.arg, h.Value.TWO)
+
+
+    def test_after_using_hint_p2_gets_turn_with_7_hints(self):
+        def giveHint(card):
+            return card.value
+        p1 = Hinter(giveHint)
+        p2 = HintTaker()
+
+        g = h.Game([p1, p2], self.cards)
+        g.turn()
+        g.turn()
+        self.assertEqual(p2.hints, 7)
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,50 @@
 #include "pybind11/functional.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include <sstream>
 namespace py = pybind11;
+
+std::ostream& operator<<(std::ostream& str, Color color)
+{
+  switch (color)
+  {
+    case Color::UNKNOWN:
+      return str << "UNKNOWN";
+    case Color::WHITE:
+      return str << "WHITE";
+    case Color::GREEN:
+      return str << "GREEN";
+    case Color::BLUE:
+      return str << "BLUE";
+    case Color::RED:
+      return str << "RED";
+    case Color::YELLOW:
+      return str << "YELLOW";
+    case Color::RAINBOW:
+      return str << "RAINBOW";
+    default:
+      return str << "UNKNOWN";
+  }
+}
+
+std::ostream& operator<<(std::ostream& str, Value value)
+{
+  switch (value)
+  {
+    case Value::ONE:
+      return str << "ONE";
+    case Value::TWO:
+      return str << "TWO";
+    case Value::THREE:
+      return str << "THREE";
+    case Value::FOUR:
+      return str << "FOUR";
+    case Value::FIVE:
+      return str << "FIVE";
+    default:
+      return str << "UNKNOWN";
+  }
+}
 
 class PyPlayer : public Player
 {
@@ -20,12 +63,12 @@ class PyPlayer : public Player
 
   void takeHint(std::list<CardId> ids, Color color) override
   {
-    PYBIND11_OVERLOAD_PURE(void, Player, playTurn, ids, color);
+    PYBIND11_OVERLOAD_PURE(void, Player, takeHint, ids, color);
   }
 
   void takeHint(std::list<CardId> ids, Value value) override
   {
-    PYBIND11_OVERLOAD_PURE(void, Player, playTurn, ids, value);
+    PYBIND11_OVERLOAD_PURE(void, Player, takeHint, ids, value);
   }
 };
 
@@ -58,7 +101,13 @@ PYBIND11_MODULE(hanabi_py, m)
     .def(py::init<>())
     .def_readwrite("color", &Card::color)
     .def_readwrite("value", &Card::value)
-    .def_readwrite("id", &Card::id);
+    .def_readwrite("id", &Card::id)
+    .def("__str__", [](const Card& card) -> std::string {
+      std::stringstream ss;
+      ss << "<Card id: " << card.id << " color: " << card.color
+         << " value: " << card.value << ">";
+      return ss.str();
+    });
 
   py::enum_<Value>(m, "Value")
     .value("UNKNOWN", Value::UNKNOWN)
@@ -95,6 +144,6 @@ PYBIND11_MODULE(hanabi_py, m)
     .def_readonly("otherPlayers", &Turn::otherPlayers)
     .def_readonly("graveyard", &Turn::graveyard)
     .def_readonly("stacks", &Turn::stacks)
-    .def_readonly("numberOfHinst", &Turn::numberOfHints)
+    .def_readonly("numberOfHints", &Turn::numberOfHints)
     .def_readonly("numberOfLives", &Turn::numberOfLives);
 }
