@@ -1,0 +1,10 @@
+addons:
+  apt:
+    packages:
+      - cmake
+language: cpp
+script:
+	- mkdir build
+	- cd build
+	- cmake ..
+	- make && ./test_game && PYTHONPATH=${PYTHONPATH}:. python binding_test.py
