@@ -13,7 +13,7 @@ compiler:
   - gcc
 
 before_install:
-  - pyenv install 3.6.3
+  - pyenv install 3.7.1
 
 script:
   - mkdir build
