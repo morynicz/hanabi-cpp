@@ -73,6 +73,7 @@ class MyTestCase(unittest.TestCase):
 
 PLAYER_1_ID = 1
 PLAYER_2_ID = 2
+PLAYER_3_ID = 3
 
 class Hinter(h.Player):
     def __init__(self, giveHint):
@@ -88,12 +89,14 @@ class Hinter(h.Player):
         turn.giveHint(PLAYER_2_ID, self.giveHint(turn.otherPlayers[PLAYER_2_ID][0]))
 
     def takeHint(self, playerId, ids, arg):
-        pass
+        self.playerId = playerId
+        self.ids = ids
+        self.arg = arg
 
 class HintTaker(h.Player):
-    def __init__(self):
+    def __init__(self, id):
         h.Player.__init__(self)
-        self.id = PLAYER_2_ID
+        self.id = id
 
     def getId(self):
         return self.id
@@ -115,7 +118,7 @@ class HintTakingTests(MyTestCase):
         def giveHint(card):
             return card.color
         p1 = Hinter(giveHint)
-        p2 = HintTaker()
+        p2 = HintTaker(PLAYER_2_ID)
         blue_card_ids = [2, 4]
 
         g = h.Game([p1, p2], self.cards)
@@ -124,25 +127,29 @@ class HintTakingTests(MyTestCase):
         self.assertEqual(p2.arg, h.Color.BLUE)
         self.assertEqual(p2.playerId, PLAYER_2_ID)
 
-    def test_value_hint_from_p1_is_sent_to_p2(self):
+    def test_value_hint_from_p1_is_sent_to_all_players(self):
         def giveHint(card):
             return card.value
         p1 = Hinter(giveHint)
-        p2 = HintTaker()
+        p2 = HintTaker(PLAYER_2_ID)
+        p3 = HintTaker(PLAYER_3_ID)
 
-        g = h.Game([p1, p2], self.cards)
+        g = h.Game([p1, p2, p3], self.cards)
         g.turn()
         value_2_card_ids = [2]
         self.assertEqual(p2.ids, value_2_card_ids)
         self.assertEqual(p2.arg, h.Value.TWO)
         self.assertEqual(p2.playerId, PLAYER_2_ID)
 
+        self.assertEqual((p1.playerId, p1.ids, p1.arg), (PLAYER_2_ID, value_2_card_ids, h.Value.TWO))
+        self.assertEqual((p3.playerId, p3.ids, p3.arg), (PLAYER_2_ID, value_2_card_ids, h.Value.TWO))
+
 
     def test_after_using_hint_p2_gets_turn_with_7_hints(self):
         def giveHint(card):
             return card.value
         p1 = Hinter(giveHint)
-        p2 = HintTaker()
+        p2 = HintTaker(PLAYER_2_ID)
 
         g = h.Game([p1, p2], self.cards)
         g.turn()

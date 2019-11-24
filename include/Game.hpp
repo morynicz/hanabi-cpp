@@ -39,9 +39,7 @@ class Game
   void play();
   void passColorHint(PlayerId, Color);
   void passValueHint(PlayerId, Value);
-  std::tuple<Players::const_iterator, std::list<CardId>> prepareHint(
-    PlayerId,
-    std::function<bool(const Card&)>);
+  std::list<CardId> prepareHint(PlayerId, std::function<bool(const Card&)>);
   Players::const_iterator getPlayerById(PlayerId) const;
   void playCard(PlayerId, CardId);
   void drawCard(PlayerId);
@@ -54,7 +52,7 @@ class Game
 
   Players players;
   Table table;
-  std::map<PlayerId, Hand> hands;
+  std::unordered_map<PlayerId, Hand> hands;
   Players::const_iterator currentPlayer;
   int turnsLeftCounter;
 

@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include "Player.hpp"
+#include "TestPrinters.hpp"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <memory>
@@ -8,95 +9,95 @@ using ::testing::ElementsAre;
 using ::testing::Field;
 using ::testing::Return;
 
-bool operator==(const Card& lhs, const Card& rhs)
+static bool operator==(const Card& lhs, const Card& rhs)
 {
   return lhs.id == rhs.id;
 }
 
-std::ostream& operator<<(std::ostream& str, Color color)
-{
-  switch (color)
-  {
-    case Color::RED:
-      str << "red";
-      break;
-    case Color::BLUE:
-      str << "blue";
-      break;
-    case Color::GREEN:
-      str << "green";
-      break;
-    case Color::WHITE:
-      str << "white";
-      break;
-    case Color::YELLOW:
-      str << "yellow";
-      break;
-    case Color::RAINBOW:
-      str << "rainbow";
-      break;
-    case Color::UNKNOWN:
-      str << "unknown";
-      break;
-  }
-  return str;
-}
+// std::ostream& operator<<(std::ostream& str, Color color)
+// {
+//   switch (color)
+//   {
+//     case Color::RED:
+//       str << "red";
+//       break;
+//     case Color::BLUE:
+//       str << "blue";
+//       break;
+//     case Color::GREEN:
+//       str << "green";
+//       break;
+//     case Color::WHITE:
+//       str << "white";
+//       break;
+//     case Color::YELLOW:
+//       str << "yellow";
+//       break;
+//     case Color::RAINBOW:
+//       str << "rainbow";
+//       break;
+//     case Color::UNKNOWN:
+//       str << "unknown";
+//       break;
+//   }
+//   return str;
+// }
 
-std::ostream& operator<<(std::ostream& str, Value value)
-{
-  switch (value)
-  {
-    case Value::ONE:
-      str << "1";
-      break;
-    case Value::TWO:
-      str << "2";
-      break;
-    case Value::THREE:
-      str << "3";
-      break;
-    case Value::FOUR:
-      str << "4";
-      break;
-    case Value::FIVE:
-      str << "5";
-      break;
-    case Value::UNKNOWN:
-      str << "unknown";
-      break;
-  }
-  return str;
-}
+// std::ostream& operator<<(std::ostream& str, Value value)
+// {
+//   switch (value)
+//   {
+//     case Value::ONE:
+//       str << "1";
+//       break;
+//     case Value::TWO:
+//       str << "2";
+//       break;
+//     case Value::THREE:
+//       str << "3";
+//       break;
+//     case Value::FOUR:
+//       str << "4";
+//       break;
+//     case Value::FIVE:
+//       str << "5";
+//       break;
+//     case Value::UNKNOWN:
+//       str << "unknown";
+//       break;
+//   }
+//   return str;
+// }
 
-std::ostream& operator<<(std::ostream& str, const Card& card)
-{
-  return str << card.color << " " << card.value;
-}
+// std::ostream& operator<<(std::ostream& str, const Card& card)
+// {
+//   return str << card.color << " " << card.value << " id " << card.id;
+// }
 
-template<typename T>
-std::ostream& operator<<(std::ostream& str, const std::list<T>& list)
-{
-  str << "[";
-  for (auto item : list)
-  {
-    str << "{" << item << "}";
-  }
-  str << "]";
-  return str;
-}
+// template<typename T>
+// std::ostream& operator<<(std::ostream& str, const std::list<T>& list)
+// {
+//   str << "[";
+//   for (auto item : list)
+//   {
+//     str << "{" << item << "}";
+//   }
+//   str << "]";
+//   return str;
+// }
 
-template<typename K, typename V>
-std::ostream& operator<<(std::ostream& str, const std::map<K, V>& map)
-{
-  str << "[";
-  for (auto item : map)
-  {
-    str << "{"
-        << "(" << item.first << ") = " << item.second << "}";
-  }
-  str << "]";
-  return str;
-}
+// template<typename K, typename V>
+// std::ostream& operator<<(std::ostream& str, const std::map<K, V>& map)
+// {
+//   str << "[";
+//   for (auto item : map)
+//   {
+//     str << "{"
+//         << "(" << item.first << ") = " << item.second << "}";
+//   }
+//   str << "]";
+//   return str;
+// }
 
 std::ostream& operator<<(std::ostream& str, const Turn& turn)
 {
@@ -241,11 +242,13 @@ TEST_F(
 
 TEST_F(
   TwoPlayerGameTests,
-  GivenFirstTurnWhenPlayer1GivesValueHintToPlayer2ThenPlayer2TakesAValueHint)
+  GivenFirstTurnWhenPlayer1GivesValueHintToPlayer2ThenAllPlayersAValueHintForPlayer2)
 {
   EXPECT_CALL(*player1, playTurn(::testing::_))
     .WillOnce(PlayerGiveHint(PLAYER_2_ID, Value::ONE));
   EXPECT_CALL(*player2,
+              takeHint(PLAYER_2_ID, std::list<CardId>{ 1, 3, 7 }, Value::ONE));
+  EXPECT_CALL(*player1,
               takeHint(PLAYER_2_ID, std::list<CardId>{ 1, 3, 7 }, Value::ONE));
   game->turn();
   game->turn();

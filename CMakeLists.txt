@@ -37,13 +37,14 @@ add_subdirectory(pybind11)
 
 include_directories(include)
 
-add_executable(test_game src/Game.cpp src/Hand.cpp src/Table.cpp src/GameTest.cpp src/TableTest.cpp)
+add_library(hanabi src/Game.cpp src/Hand.cpp src/Table.cpp src/Deck.cpp)
+
+add_executable(test_game src/GameTest.cpp src/TableTest.cpp src/DeckTest.cpp)
 set_property(TARGET test_game PROPERTY CXX_STANDARD 17)
 
-target_link_libraries(test_game gmock_main gtest gmock ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(test_game hanabi gmock_main gtest gmock ${CMAKE_THREAD_LIBS_INIT})
 
-add_library(hanabi src/Game.cpp src/Hand.cpp src/Table.cpp)
-pybind11_add_module(hanabi_py SHARED src/PyGame.cpp src/Game.cpp src/Hand.cpp src/Table.cpp)
+pybind11_add_module(hanabi_py SHARED src/PyGame.cpp src/Game.cpp src/Hand.cpp src/Table.cpp src/Deck.cpp)
 set_property(TARGET hanabi PROPERTY CXX_STANDARD 17)
 enable_testing()
 

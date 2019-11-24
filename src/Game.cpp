@@ -128,26 +128,35 @@ void Game::runPlayerTurn(Player& player)
 
 void Game::passColorHint(PlayerId playerId, Color color)
 {
-  auto [player, ids] = prepareHint(playerId, table.getColorPredicate(color));
-  (*player)->takeHint(playerId, ids, color);
+  auto ids = prepareHint(playerId, table.getColorPredicate(color));
+  for (auto player : players)
+  {
+    player->takeHint(playerId, ids, color);
+  }
 }
 
 void Game::passValueHint(PlayerId playerId, Value value)
 {
-  auto [player, ids] = prepareHint(playerId, table.getValuePredicate(value));
-  (*player)->takeHint(playerId, ids, value);
+  auto ids = prepareHint(playerId, table.getValuePredicate(value));
+  for (auto player : players)
+  {
+    player->takeHint(playerId, ids, value);
+  }
 }
 
-std::tuple<Players::const_iterator, std::list<CardId>> Game::prepareHint(
-  PlayerId playerId,
-  std::function<bool(const Card&)> predicate)
+std::list<CardId> Game::prepareHint(PlayerId playerId,
+                                    std::function<bool(const Card&)> predicate)
 {
   table.useHintToken();
-  auto player = getPlayerById(playerId);
-
-  Hand hand = hands.at(playerId);
-  std::list<CardId> ids = hand.getIds(predicate);
-  return { player, ids };
+  try
+  {
+    Hand hand = hands.at(playerId);
+    return hand.getIds(predicate);
+  }
+  catch (std::out_of_range& ex)
+  {
+    throw NoSuchPlayerException();
+  }
 }
 
 Players::const_iterator Game::getPlayerById(PlayerId playerId) const
