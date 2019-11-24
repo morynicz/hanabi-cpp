@@ -19,4 +19,4 @@ script:
   - mkdir build
   - cd build
   - cmake ..
-  - make && ./test_game && PYTHONPATH=${PYTHONPATH}:. python binding_test.py
+  - make && ./test_game && PYTHONPATH=${PYTHONPATH}:. python3.6 binding_test.py

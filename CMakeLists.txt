@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
-project(AceOfSpace CXX)
+project(Hanabi-cpp CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-Wall -Wextra -pedantic -Werror -Wunused)
+
+set(PYBIND11_CPP_STANDARD --std=c++17)
+
+add_subdirectory(pybind11)
 
 find_package(Threads)
 
@@ -31,9 +35,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 
-set(PYBIND11_CPP_STANDARD -std=c++17)
-
-add_subdirectory(pybind11)
 
 include_directories(include)
 
@@ -46,6 +47,7 @@ target_link_libraries(test_game hanabi gmock_main gtest gmock ${CMAKE_THREAD_LIB
 
 pybind11_add_module(hanabi_py SHARED src/PyGame.cpp src/Game.cpp src/Hand.cpp src/Table.cpp src/Deck.cpp)
 set_property(TARGET hanabi PROPERTY CXX_STANDARD 17)
+set_property(TARGET hanabi_py PROPERTY CXX_STANDARD 17)
 enable_testing()
 
 add_test(game test_game)
