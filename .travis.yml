@@ -3,8 +3,19 @@ addons:
     packages:
       - cmake
 language: cpp
+
+git:
+  submodules: true
+
+compiler:
+  - clang
+  - gcc
+
+before_install:
+  - pyenv python3.8
+
 script:
-	- mkdir build
-	- cd build
-	- cmake ..
-	- make && ./test_game && PYTHONPATH=${PYTHONPATH}:. python binding_test.py
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make && ./test_game && PYTHONPATH=${PYTHONPATH}:. python binding_test.py

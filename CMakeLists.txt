@@ -49,3 +49,5 @@ set_property(TARGET hanabi PROPERTY CXX_STANDARD 17)
 enable_testing()
 
 add_test(game test_game)
+
+configure_file(binding_test.py binding_test.py)
