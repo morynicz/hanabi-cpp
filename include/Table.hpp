@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Card.hpp"
+#include "Deck.hpp"
 #include <array>
 #include <functional>
 #include <list>
@@ -10,18 +11,20 @@ constexpr unsigned char MAX_LIVES = 3;
 constexpr unsigned char MAX_HINTS = 8;
 constexpr unsigned char NUMBER_OF_COLORS = 5;
 
+using Stacks = std::map<Color, Value>;
+
 class NoMoreHintsAvailableException : public std::exception
 {
 };
 
 class Table
 {
-  Cards deck;
-  std::map<Color, Value> stacks;
+  Deck deck;
+  Stacks stacks;
   Cards graveyard;
   unsigned char numberOfHints;
   unsigned char numberOfLives;
-  std::map<Color, std::map<Value, int>> winnableCondition;
+  Composition winnableCondition;
   bool isOpeningNewStack(const Card&);
   bool isAddingCardToStack(const Card&);
   bool isStackOpened(const Color);
@@ -30,42 +33,13 @@ class Table
   void putToGraveyard(const Card&);
 
 public:
-  Table(const Cards& deck)
+  Table(const Deck& deck)
     : deck(deck)
     , stacks{}
     , graveyard{}
     , numberOfHints(MAX_HINTS)
     , numberOfLives(MAX_LIVES)
-    , winnableCondition{ { Color::YELLOW,
-                           { { Value::ONE, 3 },
-                             { Value::TWO, 2 },
-                             { Value::THREE, 2 },
-                             { Value::FOUR, 2 },
-                             { Value::FIVE, 1 } } },
-                         { Color::RED,
-                           { { Value::ONE, 3 },
-                             { Value::TWO, 2 },
-                             { Value::THREE, 2 },
-                             { Value::FOUR, 2 },
-                             { Value::FIVE, 1 } } },
-                         { Color::BLUE,
-                           { { Value::ONE, 3 },
-                             { Value::TWO, 2 },
-                             { Value::THREE, 2 },
-                             { Value::FOUR, 2 },
-                             { Value::FIVE, 1 } } },
-                         { Color::GREEN,
-                           { { Value::ONE, 3 },
-                             { Value::TWO, 2 },
-                             { Value::THREE, 2 },
-                             { Value::FOUR, 2 },
-                             { Value::FIVE, 1 } } },
-                         { Color::WHITE,
-                           { { Value::ONE, 3 },
-                             { Value::TWO, 2 },
-                             { Value::THREE, 2 },
-                             { Value::FOUR, 2 },
-                             { Value::FIVE, 1 } } } }
+    , winnableCondition(deck.getComposition())
   {
   }
 
@@ -74,7 +48,7 @@ public:
   unsigned char getNumberOfLives() const { return numberOfLives; }
   unsigned char getNumberOfHints() const { return numberOfHints; }
   Card drawCard();
-  inline bool isDeckEmpty() const { return deck.empty(); }
+  inline bool isDeckEmpty() const { return deck.isEmpty(); }
   virtual std::function<bool(const Card&)> getColorPredicate(
     const Color color) const;
   virtual std::function<bool(const Card&)> getValuePredicate(

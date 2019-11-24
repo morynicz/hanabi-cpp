@@ -21,9 +21,7 @@ bool Table::areAllStacksFinished() const
 
 Card Table::drawCard()
 {
-  auto card = deck.front();
-  deck.pop_front();
-  return card;
+  return deck.draw();
 }
 
 std::function<bool(const Card&)> Table::getColorPredicate(
@@ -91,16 +89,16 @@ void Table::restoreHint()
 
 bool Table::isWinnable() const
 {
-  return std::none_of(winnableCondition.begin(),
-                      winnableCondition.end(),
-                      [](const std::pair<Color, std::map<Value, int>>& values) {
-                        return any_of(
-                          values.second.begin(),
-                          values.second.end(),
-                          [](const std::pair<Value, int>& numberOfLeft) {
-                            return numberOfLeft.second <= 0;
-                          });
-                      });
+  return std::none_of(
+    winnableCondition.begin(),
+    winnableCondition.end(),
+    [](const std::pair<Color, std::unordered_map<Value, int>>& values) {
+      return any_of(values.second.begin(),
+                    values.second.end(),
+                    [](const std::pair<Value, int>& numberOfLeft) {
+                      return numberOfLeft.second <= 0;
+                    });
+    });
 }
 
 void Table::putToGraveyard(const Card& card)

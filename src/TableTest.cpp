@@ -7,7 +7,7 @@
 struct BlueStackBuiltUpToFourTableTests : public ::testing::Test
 {
   BlueStackBuiltUpToFourTableTests()
-    : table({})
+    : table(Deck(Cards{}))
   {
     table.playCard({ 0, Color::BLUE, Value::ONE });
     table.playCard({ 0, Color::BLUE, Value::TWO });
@@ -50,15 +50,21 @@ class YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests
 {
 public:
   YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests()
-    : table({ { 0, Color::YELLOW, Value::ONE },
-              { 1, Color::YELLOW, Value::ONE },
-              { 2, Color::YELLOW, Value::TWO },
-              { 3, Color::YELLOW, Value::FOUR } })
+    : deck(Cards{ { 0, Color::YELLOW, Value::ONE },
+                  { 1, Color::YELLOW, Value::ONE },
+                  { 2, Color::YELLOW, Value::TWO },
+                  { 3, Color::YELLOW, Value::THREE },
+                  { 4, Color::YELLOW, Value::THREE },
+                  { 5, Color::YELLOW, Value::FOUR },
+                  { 6, Color::YELLOW, Value::FIVE } })
+    , table(deck)
   {
+    std::cerr << deck.getComposition() << std::endl;
     table.playCard({ 5, Color::YELLOW, Value::ONE });
     table.playCard({ 6, Color::YELLOW, Value::TWO });
     table.discard({ 7, Color::YELLOW, Value::THREE });
   }
+  Deck deck;
   Table table;
 };
 
@@ -85,7 +91,7 @@ TEST_F(YellowStackBuiltUpToTwoAndYellowThreeDiscardedTableTests,
 
 TEST(FiveDiscardTest, WhenFiveIsDiscardedThenGameIsNotWinnable)
 {
-  Table table{ {} };
+  Table table{ BasicDeck() };
   table.discard({ 0, Color::GREEN, Value::FIVE });
   EXPECT_FALSE(table.isWinnable());
 }
